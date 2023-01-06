@@ -58,7 +58,7 @@ def get_facility_info(facility_id):
     size = str(content["data"]["size"]) if "size" in content["data"] else None
     build_costs = str(content["data"]["buildCosts"]) if content["data"]["buildCosts"] is not None else None
     options = str(content["data"]["options"]) if content["data"]["options"] is not None else None
-    rotatable = content['data']['rotatable']
+    rotatable = int(content['data']['rotatable'])
     name_ko = content["names"]["ko"]
     name_en = content["names"]["en"]
     description_ko = content["descriptions"]["ko"]
@@ -99,9 +99,10 @@ conn = sqlite3.connect("db.sqlite3")
 cur = conn.cursor()
 conn.execute("CREATE TABLE IF NOT EXISTS item(id TEXT PRIMARY KEY, icon TEXT, category TEXT, level INTEGER, weight INTEGER, options TEXT, vested INTEGER, planted INTEGER, usable INTEGER, collectible INTEGER, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, craftables TEXT, ingredients TEXT, steps TEXT, aliases TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS crop(id TEXT PRIMARY KEY, icon TEXT, level INTEGER, strawberry INTEGER, is_tree INTEGER, growth TEXT, water TEXT, soil TEXT, health TEXT, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
-conn.execute("CREATE TABLE IF NOT EXISTS facility(id TEXT PRIMARY KEY, icon TEXT, color TEXT, level INTEGER, size TEXT, build_costs TEXT, options TEXT, rotatable TEXT, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
+conn.execute("CREATE TABLE IF NOT EXISTS facility(id TEXT PRIMARY KEY, icon TEXT, color TEXT, level INTEGER, size TEXT, build_costs TEXT, options TEXT, rotatable INTEGER, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS buff(id TEXT PRIMARY KEY, icon TEXT, options TEXT, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS stat(id TEXT PRIMARY KEY, icon TEXT, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
+conn.execute("CREATE TABLE IF NOT EXISTS pit(user INTEGER PRIMARY KEY, guild TEXT, reward TEXT, time INTEGER)")
 conn.commit()
 
 step = 1

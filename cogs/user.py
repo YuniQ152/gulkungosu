@@ -9,35 +9,32 @@ from modules.utils import *
 
 
 def generate_crop_text(crop: dict, topic: str = None):
-    if crop is not None:
-        crop_id      = crop['staticCropId'] # 작물ID
-        status       = crop['status']       # 상태: 0 정상 | 1 다갈증 | 2 나쁜 곰팡이 | 3 지렁이
-        health       = crop['health']       # 체력
-        humidity     = crop['humidity']     # 수분
-        fertility    = crop['fertility']    # 비옥도
-        acceleration = crop['acceleration'] # 성장 가속
-        growth       = crop['growth']       # "dirt" "germination" "maturity" "fruitage"
+    crop_id      = crop['staticCropId'] # 작물ID
+    status       = crop['status']       # 상태: 0 정상 | 1 다갈증 | 2 나쁜 곰팡이 | 3 지렁이
+    health       = crop['health']       # 체력
+    humidity     = crop['humidity']     # 수분
+    fertility    = crop['fertility']    # 비옥도
+    acceleration = crop['acceleration'] # 성장 가속
+    growth       = crop['growth']       # "dirt" "germination" "maturity" "fruitage"
 
-        if humidity < 0.1 or fertility < 0.15 or health < 0.2:
-            crop_text = "> 🚨"
-        elif humidity < 0.2 or fertility < 0.3 or health < 0.5:
-            crop_text = "> ⚠"
-        else:
-            crop_text = "> "
-        if   growth == "dirt":        crop_text += "🟫"
-        elif growth == "germination": crop_text += "🌱"
-        elif growth == "maturity":    crop_text += "🌿" if crop_id != "pumpkin" else "🥒"
-        elif growth == "fruitage":    crop_text +=f"{fetch_crop_info(crop_id)['icon']}"
-        crop_text += f" **{fetch_crop_info(crop_id)['name_ko']}** ({crop['num']})"
-        if fertility < 0.3 or topic == "fertility" or status == 2: crop_text +=f" | 🍔 비옥도: `{int(fertility*100)}%`"
-        if humidity  < 0.2 or topic == "humidity"  or status == 1: crop_text +=f" | 💧 수분: `{int(humidity*100)}%`"
-        if health    < 0.5 or topic == "health"    or status == 2: crop_text +=f" | 💚 체력: `{int(health*100)}%`"
-        if   status == 1: crop_text += " | 🤒 다갈증"
-        elif status == 2: crop_text += " | 🦠 곰팡이"
-        elif status == 3: crop_text += " | 🪱 지렁이"
-        crop_text += "\n"
+    if humidity < 0.1 or fertility < 0.15 or health < 0.2:
+        crop_text = "> 🚨"
+    elif humidity < 0.2 or fertility < 0.3 or health < 0.5:
+        crop_text = "> ⚠"
     else:
-        crop_text = f"> <:blank:908031851732533318> **작물 없음** ({crop['num']})\n"
+        crop_text = "> "
+    if   growth == "dirt":        crop_text += "🟫"
+    elif growth == "germination": crop_text += "🌱"
+    elif growth == "maturity":    crop_text += "🌿" if crop_id != "pumpkin" else "🥒"
+    elif growth == "fruitage":    crop_text +=f"{fetch_crop_info(crop_id)['icon']}"
+    crop_text += f" **{fetch_crop_info(crop_id)['name_ko']}** ({crop['num']})"
+    if fertility < 0.3 or topic == "fertility" or status == 2: crop_text +=f" | 🍔 비옥도: `{int(fertility*100)}%`"
+    if humidity  < 0.2 or topic == "humidity"  or status == 1: crop_text +=f" | 💧 수분: `{int(humidity*100)}%`"
+    if health    < 0.5 or topic == "health"    or status == 2: crop_text +=f" | 💚 체력: `{int(health*100)}%`"
+    if   status == 1: crop_text += " | 🤒 다갈증"
+    elif status == 2: crop_text += " | 🦠 곰팡이"
+    elif status == 3: crop_text += " | 🪱 지렁이"
+    crop_text += "\n"
 
     return crop_text
 
@@ -53,9 +50,9 @@ def farm_embed(member, farm):
 
     for i in range(len(farm)):
         crop = farm[i]
-        farm[i]['num'] = i+1
         if crop is not None: # 작물이 심어져 있을 때
             crop_count += 1
+            farm[i]['num'] = i+1
 
             if crop['growth'] == "fruitage": # 작물이 수확 가능한 경우
                 harvestable += 1
@@ -72,7 +69,14 @@ def farm_embed(member, farm):
 
         else:
             harvestable += 1
-            harvestable_text += generate_crop_text(farm[i])
+            harvestable_text += f"> <:blank:908031851732533318> **작물 없음** ({i+1})\n"
+            farm[i] = {"staticCropId": "onion",
+                       "status": None,
+                       "health": 999,
+                       "humidity": 999,
+                       "fertility": 999,
+                       "acceleration": 999,
+                       "growth": None} # 수분/비옥도/체력 순으로 정렬할때 오류방지용
 
     embed=discord.Embed(title=f"{member.name}님의 농장",
                         description=f"🔗 사용하기: </farm:882220435960385547>\n🌱 작물 수: `{crop_count}`/{len(farm)}" + (" \❗" if crop_count != len(farm) else ""),
@@ -99,9 +103,9 @@ def farm_embed(member, farm):
                     fertility_text += generate_crop_text(farm[i], "fertility")
             if fertility_count > 10:
                 fertility_text += f"> {fertility_count - 10}개의 위독한 작물"
-        embed.add_field(name=f"⚒ 비옥도 낮음: {plowable_count}", value=fertility_text, inline=False)
+        embed.add_field(name=f"⚒ 밭 갈기 가능: {plowable_count}", value=fertility_text, inline=False)
     # else:
-    #     embed.add_field(name=f"⚒ 비옥도 낮음", value="> 없음", inline=False)
+    #     embed.add_field(name=f"⚒ 밭 갈기 가능", value="> 없음", inline=False)
 
     if waterable_count != 0:
         humidity_text = ""
@@ -121,9 +125,9 @@ def farm_embed(member, farm):
                     humidity_text += generate_crop_text(farm[i], "humidity")
             if humidity_count > 10:
                 humidity_text += f"> {humidity_count - 10}개의 위독한 작물"
-        embed.add_field(name=f"🚿 수분 낮음: {waterable_count}", value=humidity_text, inline=False)
+        embed.add_field(name=f"🚿 물 뿌리기 가능: {waterable_count}", value=humidity_text, inline=False)
     # else:
-    #     embed.add_field(name=f"🚿 수분 낮음", value="> 없음", inline=False)
+    #     embed.add_field(name=f"🚿 물 뿌리기 가능", value="> 없음", inline=False)
 
     if low_health_count != 0:
         health_text = ""
@@ -143,11 +147,11 @@ def farm_embed(member, farm):
                     health_text += generate_crop_text(farm[i], "health")
             if health_count > 10:
                 health_text += f"> {health_count - 10}개의 위독한 작물"
-        embed.add_field(name=f"🧪 체력 낮음: {low_health_count}", value=health_text, inline=False)
+        embed.add_field(name=f"🧪 영양제 소비 가능: {low_health_count}", value=health_text, inline=False)
     # else:
-    #     embed.add_field(name=f"🧪 체력 낮음", value="> 없음", inline=False)
+    #     embed.add_field(name=f"🧪 영양제 소비 가능", value="> 없음", inline=False)
 
-    return embed
+    return embed # ㅅㅂ 코드 존1나난해하네
 
 
 
@@ -164,7 +168,7 @@ def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
 
     description = ""
     for i in range(min(len(items), 15)):
-        description += f"{items[i]['icon']} **{items[i]['name_ko']}** {items[i]['quantity']}개 (무게 {items[i]['total_weight']} | {items[i]['total_weight']/inv_max_weight*100:.1f}%)\n"
+        description += f"{items[i]['icon']} **{items[i]['name_ko']}** × {items[i]['quantity']}개 (무게 {items[i]['total_weight']} | {items[i]['total_weight']/inv_max_weight*100:.1f}%)\n"
     if len(items) > 15:
         etc_weight_sum = 0
 
@@ -202,15 +206,15 @@ def health_embed(member, user_info, facilities, equipments):
     if heal_acceleration != 1:
         health_accel_text = "> <:blank:908031851732533318> **기본** | `🔺1`\n"
         bedroom_accel = 0
-        bedroom_count = 0
+        bedroom_count = 0 # 침대 개수
         for facility in facilities:
-            if facility['staticId'] == "bedroom" and facility['status'] == "fine":
+            if facility['staticId'] == "bedroom" and facility['status'] == "fine": # 시설물이 침대고, 상태가 정상인 경우(공사 중이거나 망가지지 않은 경우)
                 bedroom_count += 1
                 if   facility['level'] == 1: bedroom_accel += 0.3
                 elif facility['level'] == 2: bedroom_accel += 0.6
                 elif facility['level'] == 3: bedroom_accel += 1
-        if bedroom_accel != 0:
-            health_accel_text += f"> 🛋 **안방** × {bedroom_count}개 | `{arrow_number(bedroom_accel)}`\n"
+        if bedroom_accel != 0: # 침대가 주는 활동력 회복량 증가가 0인 경우 (침대가 없거나 공사 중 or 망가짐)
+            health_accel_text += f"> 🛋 **안방** × {bedroom_count}개 | `{arrow_number(bedroom_accel):.3f}`\n"
         for equipment in equipments:
             if "healAcceleration" in equipment['options']:
                 item_info = fetch_item_info(equipment['staticId'])
@@ -238,16 +242,16 @@ def health_embed(member, user_info, facilities, equipments):
 
 
 def stats_embed(user, user_info, target = None, target_info = None):
-    if target is None:
+    if target is None: # 타겟이 없는 경우
         embed=discord.Embed(title=f"{user.name}님의 능력치", description="", color=discord.Color(0xe67e22))
         embed.add_field(name="물리 공격력", value=user_info['stats']['pf'])
         embed.add_field(name="마법 공격력", value=user_info['stats']['mf'])
-        embed.add_field(name="기동력", value=user_info['stats']['speed'])
+        embed.add_field(name="기동력",      value=user_info['stats']['speed'])
         embed.add_field(name="물리 방어력", value=user_info['stats']['pr'])
         embed.add_field(name="마법 방어력", value=user_info['stats']['mr'])
-        embed.add_field(name="집중력", value=user_info['stats']['concentration'])
+        embed.add_field(name="집중력",      value=user_info['stats']['concentration'])
         return embed
-    else:
+    else: # 타겟이 있는 경우
         stats = ["물리 공격력", "물리 방어력", "마법 공격력", "마법 방어력", "기동력", "집중력"]
         embed_user_field_value = ""
         user_stats = [user_info['stats']['pf'],

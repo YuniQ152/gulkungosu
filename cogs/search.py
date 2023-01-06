@@ -46,7 +46,8 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
             item_quantity = get_item_quantity_from_inventory(inv_item_list, best['id'])
             embed.add_field(name="보유 수량", value=f"`{item_quantity}`", inline=True)
             embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
-            if best['weight']*item_quantity/max_weight != 0: embed.add_field(name="인벤토리 비율", value=f"`{best['weight']*item_quantity/max_weight*100:.2f}%`", inline=True)
+            if best['weight']*item_quantity/max_weight != 0:
+                embed.add_field(name="총 무게", value=f"`{best['weight']*item_quantity}` (`{best['weight']*item_quantity/max_weight*100:.2f}%`)", inline=True)
         except:
             embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
 
@@ -195,10 +196,12 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
 
         footer_text = "[시설물] "
         if type(best['size']) is list:
-            footer_text += f"일반 시설물 | {best['size'][0]}x{best['size'][1]} 크기"
+            footer_text += f"일반 시설물 | {best['size'][0]}x{best['size'][1]}"
+            if best['rotatable'] == 1:
+                footer_text += f" 또는 {best['size'][1]}x{best['size'][0]}"
+            footer_text += " 크기"
         else:
             footer_text += f"광장 시설물"
-        if best['rotatable'] == 1: footer_text += f" | 회전 가능"
         embed.set_footer(text=footer_text)
         return embed
 
@@ -270,23 +273,23 @@ class SearchButton(Button):
         self.guild_id  = guild_id
         self.author_id = author_id
     async def callback(self, interaction: discord.Interaction):
-        embed = search_embed(self.best, self.guild_id, self.author_id)
+        embed = search_embed(self.best, self.guild_id, interaction.user.id)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 
 class SearchView(View):
     children: SearchButton
-    def __init__(self, result_count, result_list:list, guild_id:int, author_id:int):
+    def __init__(self, result_count:int, result_list:list, guild_id:int, author_id:int):
         super().__init__()
-        if result_count >= 2: # embed가 여러개인 경우
+        if result_count >= 2:
             for i in range(result_count):
                 self.add_item(SearchButton(result_list[i], guild_id, author_id))
 
 
 
 class Search(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot:commands.Bot) -> None:
         self.bot = bot
 
     @commands.hybrid_command(name="검색",
@@ -327,7 +330,7 @@ class Search(commands.Cog):
                     embed=discord.Embed(title="이것을 찾으셨나요?", description=description, color=discord.Color.random())
                     await ctx.reply(content="", embed=embed)
                 else:
-                    await ctx.reply(f"`{keyword}`에 해당하는 적절한 아이템/작물/시설물/버프를 찾을 수 없습니다.")
+                    await ctx.reply(f"`{keyword}`에 해당하는 적절한 아이템/작물/시설물/버프/능력치를 찾을 수 없습니다.")
 
         elif result_count == 1:
             if isinstance(ctx.channel, discord.channel.DMChannel):

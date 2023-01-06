@@ -43,11 +43,11 @@ class Server(commands.Cog):
 
             channel = self.bot.get_channel(cofarm_id)
 
-            plowable  = 0
-            waterable = 0
-            severe_count = 0
-            severe_text = ""
-            score = 0
+            plowable  = 0    # 밭 갈기 가능 수
+            waterable = 0    # 물 주기 가능 수
+            severe_count = 0 # 위독한 작물 수
+            severe_text = "" # 위독한 작물 텍스트
+            score = 0        # 공동농장 점수
             for crop in farms:
 
                 if crop is not None: # 작물이 심어져 있을 때
@@ -71,10 +71,16 @@ class Server(commands.Cog):
 
                     if humidity < 0.2 or fertility < 0.3 or health < 0.5:
                         severe_count += 1
-                        if   growth == "dirt":        severe_text += "> 🟫"
-                        elif growth == "germination": severe_text += "> 🌱"
-                        elif growth == "maturity":    severe_text += "> 🌿" if crop_id != "pumpkin" else "> 🥒"
-                        elif growth == "fruitage":    severe_text += f"> {fetch_crop_info(crop_id)['icon']}"
+
+                        if humidity < 0.1 or fertility < 0.15 or health < 0.2:
+                            severe_text = "> 🚨"
+                        else:
+                            severe_text = "> ⚠"
+
+                        if   growth == "dirt":        severe_text += "🟫"
+                        elif growth == "germination": severe_text += "🌱"
+                        elif growth == "maturity":    severe_text += "🌿" if crop_id != "pumpkin" else "🥒"
+                        elif growth == "fruitage":    severe_text += f"{fetch_crop_info(crop_id)['icon']}"
                         severe_text += f" **{fetch_crop_info(crop_id)['name_ko']}**"
 
                         if fertility < 0.3: severe_text += f" | 🍔 비옥도: `{int(fertility*100)}%`"
@@ -87,7 +93,7 @@ class Server(commands.Cog):
 
             crop_count = 0
             for crop in farms:
-                if crop is not None:
+                if crop is not None: # 작물이 심어져 있는 경우
                     crop_count += 1
 
             activitible_text=""
@@ -98,7 +104,7 @@ class Server(commands.Cog):
             if cofarm_id != ctx.channel.id:
                 description = f">>> 🔗 바로가기: {channel.mention}\n"
             else:
-                description = ">>> 🇺🇳 사용하기: </cofarm:886550657916604457>\n"
+                description = ">>> 🔗 사용하기: </cofarm:886550657916604457>\n"
             description += f"🌱 작물 수: `{crop_count}`/{len(farms)}"
             if crop_count == len(farms): description += "\n"
             else:                        description += " \❗ \n"

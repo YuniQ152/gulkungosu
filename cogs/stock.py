@@ -40,7 +40,7 @@ class Stock(commands.Cog):
                 date.insert(0, convert_datetime(i['date']/1000))
             generate_graph(date, price)
             await ctx.reply(f"{best['icon']} **{best['name_ko']}**의 최근 1주일 시세 그래프입니다.", file=discord.File("trade.png"))
-        elif crop_list[0]['ratio'] <= 0.3: # 가장 높은 ratio가 30% 이하일 경우
+        elif crop_list[0]['ratio'] <= 0.45: # 가장 높은 ratio가 45% 이하일 경우
             await ctx.reply(f"`{crop}`에 해당하는 적절한 작물을 찾을 수 없습니다.")
         else:
             description = ""

@@ -24,7 +24,7 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨v1.2.2 업데이트 완료! - 농장 명령어가 개편되었습니다"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨v1.2.3 업데이트 완료!"),
             intents = intents)
 
         self.initial_extensions = ["cogs.general",
@@ -59,7 +59,7 @@ async def check_loop():
     response_code, user_info = get_user_info(1234)
     if response_code != 200: await message_channel.send(api_error_message(response_code), ephemeral=True); return
     user_health = user_info['health'] # 현재 활동력
-    if user_health >= 85:
+    if user_health >= 90:
         await message_channel.send(content=f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 현재 활동력: 💙 {user_health} <@776986070708518913>")
     else:
         await message_channel.send(content=f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 현재 활동력: 💙 {user_health}")

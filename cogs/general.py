@@ -49,8 +49,12 @@ class General(commands.Cog):
         if isinstance(ctx.channel, discord.channel.DMChannel):
             await ctx.reply(content="", embed=embed)
         else:
-            await ctx.author.send(content="", embed=embed)
-            await ctx.reply(content="개인 메시지로 도움말을 보냈어요!")
+            try:
+                await ctx.author.send(content="", embed=embed)
+                await ctx.reply(content="개인 메시지로 도움말을 보냈어요!")
+            except:
+                await ctx.reply(content="개인 메시지를 보낼려고 했는데, 보낼 수가 없어요! 개인 메시지 수신을 허용하고 저를 거부하지 말아주세요.")
+            
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -2,6 +2,7 @@ import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 from typing import Optional
+from datetime import datetime
 from modules.database import *
 from modules.get import *
 from modules.utils import *
@@ -14,20 +15,25 @@ class Log(commands.Cog):
 
 
 
-    @commands.hybrid_command(name="test",
-                             aliases=['t', 'ㅅ'],
-                             description="테스트용커맨드",
-                             with_app_command=True)
-    @commands.guild_only()
-    @app_commands.guild_only()
-    async def test(self, ctx: commands.Context):
-        embed=discord.Embed(title=":mountain_snow: YuniQ 님의 갱", description=":information_source: 아래 맵의 버튼 중 하나를 클릭하면 :strawberry: 10개를 소비하고 지하 1층부터 채굴을 시작합니다.\n시작한지 1시간이 지나면 그동안 모은 채굴 보상을 획득하고 맵이 초기화됩니다.")
-        await ctx.reply(embed=embed)
-
-
-
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.content.startswith("."):
+            if message.author.id != 776986070708518913:
+                if isinstance(message.channel, discord.DMChannel): # DM
+                    text = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {'D M':^50} | {'User: ' + message.author.name + message.author.discriminator:^24} | {message.content}"
+                    print(text)
+                else:
+                    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {'Server: ' + message.guild.name:^24} | {'Channel: #' + message.channel.name:^24} | {'User: ' + message.author.name + message.author.discriminator:^24} | {message.content}")
+
+                    embed = discord.Embed(title="명령어 사용됨", description="", color=discord.Color.blurple())
+                    embed.add_field(name="정보", value=f">>> **서버:** {message.guild.name}\n**채널:** {message.channel.mention} (#{message.channel.name})\n**유저:** {message.author.name}#{message.author.discriminator}", inline=False)
+                    embed.add_field(name="내용", value=message.content, inline=False)
+                    embed.timestamp = datetime.now()
+                    message_channel = self.bot.get_channel(1050124516652752921)
+                    await message_channel.send(embed=embed)
+
+
+
         if len(message.embeds) != 0 and (message.author.id == 870304475326332968 or message.author.id == 1055865319467520140):
             embed = message.embeds[0]
             if "님의 갱" in embed.title or "'s Pit" in embed.title:
@@ -38,7 +44,16 @@ class Log(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
-        pass
+        if len(message_after.embeds) != 0 and (message_after.author.id == 870304475326332968 or message_after.author.id == 1055865319467520140):
+            embed = message_after.embeds[0]
+            if "님의 갱" in embed.title or "'s Pit" in embed.title:
+                description = embed.description.split("\n")
+                health      = int(embed.fields[0].value)        # 현재 활동력
+                consumption = int(embed.fields[1].value)        # 1회 채굴 시 소모 활동력
+                reward      = embed.fields[2].value.split("\n") # 채굴 보상
+                print(description)
+                print(reward)
+                # await message.channel.send("갱감지")
 
 
 

@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from datetime import datetime
 import sys, traceback
 
 
@@ -8,24 +7,6 @@ import sys, traceback
 class Error(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-
-
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        # await self.bot.process_commands(message)
-        if message.content.startswith("."):
-            if isinstance(message.channel, discord.DMChannel): # DM
-                text = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {'D M':^50} | {'User: ' + message.author.name + message.author.discriminator:^24} | {message.content}"
-                print(text)
-            else:
-                print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {'Server: ' + message.guild.name:^24} | {'Channel: #' + message.channel.name:^24} | {'User: ' + message.author.name + message.author.discriminator:^24} | {message.content}")
-
-                embed = discord.Embed(title="명령어 사용됨", description="", color=discord.Color.blurple())
-                embed.add_field(name="정보", value=f">>> **서　버:** {message.guild.name}\n**채　널:** {message.channel.mention} (#{message.channel.name})\n**사용자:** {message.author.name}#{message.author.discriminator}", inline=False)
-                embed.add_field(name="내용", value=message.content, inline=False)
-                embed.timestamp = datetime.now()
-                message_channel = self.bot.get_channel(1050124516652752921)
-                await message_channel.send(embed=embed)
 
 
 
@@ -49,8 +30,6 @@ class Error(commands.Cog):
                 await ctx.reply("이 명령어는 개인 메시지에서 작동하지 않아요.")
             except discord.HTTPException:
                 pass
-        elif isinstance(error, discord.HTTPException):
-            await ctx.reply(f"메시지를 보낼려고 했는데 너무 길어요!", ephemeral = True)
         else:
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
