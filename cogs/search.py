@@ -64,7 +64,7 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
                            ['pf', '물리 공격력'],
                            ['mf', '마법 공격력'],
                            ['pr', '물리 방어력'],
-                           ['mr', '마법 공격력'],
+                           ['mr', '마법 방어력'],
                            ['speed', '기동력'],
                            ['concentration', '집중력'],
                            ['ferocity', '<:ferocity:1037828201533145088> 맹렬'],
@@ -183,13 +183,17 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
             if "wildAnimalAvoidance" in options:
                 field_value += f"⛓ **야생동물 방어율**\n└ `+{int(options['wildAnimalAvoidance']*100)}%p`\n"
             if "taskLength" in options:
-                field_value += f"📏 **작업 대기열 길이**\n└ `{options['taskLength']}`\n"
+                field_value += f"🔀 **작업 대기열 길이**\n└ `{options['taskLength']}`\n"
             if "maxDistance" in options:
                 field_value += f"🚏 **순간이동 최대 거리**\n└ `{options['maxDistance']}칸`\n"
             if "craftBonus" in options:
                 field_value += f"✨ **제작 효율 증가**\n└ `+{int(options['craftBonus']*100)}%p`\n" if options['craftBonus'] != 0 else ""
             if "taskBonus" in options:
-                field_value += f"✨ **작업 효율 증가**\n└ `+{int(options['taskBonus']*100)}%p`\n" if options['taskBonus'] != 0 else ""
+                field_value += f"✨ **작업 빠르기 증가**\n└ `{int(options['taskBonus']*100)}%p`\n" if options['taskBonus'] != 0 else ""
+            if "pantryLevel" in options:
+                field_value += f"pantryLevel (뭔지모름)\n└ `{options['pantryLevel']}`\n"
+            if "pantryCapacity" in options:
+                field_value += f"pantryCapacity (뭔지모름)\n└ `{options['pantryCapacity']}`\n"
             if options == {}: # 빈 dict인 경우 (기능이 없는 경우)
                 field_value += "**없음**"
             embed.add_field(name=field_name, value=field_value, inline=True)
@@ -322,7 +326,7 @@ class Search(commands.Cog):
                 description = ""
                 suggest_count = 0
                 for i in range(15):
-                    if db_list[i]['ratio'] <= 0.15 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.15: # ratio가 15% 이하거나 가장 높은 ratio에 비해 15% 이상 낮은 경우
+                    if db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.15: # ratio가 20% 이하거나 가장 높은 ratio에 비해 15% 이상 낮은 경우
                         break
                     description += f"{db_list[i]['icon']} **{db_list[i]['name_ko']}**\n"
                     suggest_count += 1
@@ -338,6 +342,13 @@ class Search(commands.Cog):
             else:
                 embed = search_embed(db_list[0], ctx.guild.id, ctx.author.id)
             await ctx.reply(embed=embed)
+
+        elif result_count == 2 and db_list[0]['name_ko'] == db_list[1]['name_ko']:
+            if isinstance(ctx.channel, discord.channel.DMChannel):
+                embeds = [search_embed(db_list[0], 0, 0), search_embed(db_list[1], 0, 0)]
+            else:
+                embeds = [search_embed(db_list[0], ctx.guild.id, ctx.author.id), search_embed(db_list[1], ctx.guild.id, ctx.author.id)]
+            await ctx.reply(embeds=embeds)
 
         else: # 결과가 여러개
             await ctx.reply(f"`{keyword}`에 해당하는 검색 결과가 여러 개입니다.\n아래 버튼을 눌러 원하는 결과를 확인하세요.", view=SearchView(result_count, result, ctx.guild.id, ctx.author.id))

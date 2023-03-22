@@ -24,11 +24,11 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨v1.2.3 업데이트 완료!"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✅신규 아이템 & 시설물 업데이트 완료!"),
             intents = intents)
 
         self.initial_extensions = ["cogs.general",
-                                   "cogs.server",
+                                   "cogs.guild",
                                    "cogs.user",
                                    "cogs.search",
                                    "cogs.stock",

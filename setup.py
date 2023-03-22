@@ -102,7 +102,9 @@ conn.execute("CREATE TABLE IF NOT EXISTS crop(id TEXT PRIMARY KEY, icon TEXT, le
 conn.execute("CREATE TABLE IF NOT EXISTS facility(id TEXT PRIMARY KEY, icon TEXT, color TEXT, level INTEGER, size TEXT, build_costs TEXT, options TEXT, rotatable INTEGER, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS buff(id TEXT PRIMARY KEY, icon TEXT, options TEXT, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS stat(id TEXT PRIMARY KEY, icon TEXT, name_ko TEXT, name_en TEXT, description_ko TEXT, description_en TEXT, aliases TEXT)")
-conn.execute("CREATE TABLE IF NOT EXISTS pit(user INTEGER PRIMARY KEY, guild TEXT, reward TEXT, time INTEGER)")
+# conn.execute("CREATE TABLE IF NOT EXISTS pit(user INTEGER PRIMARY KEY, guild TEXT, reward TEXT, time INTEGER)")
+conn.execute("CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY, guild_id INTEGER, user_id INTEGER, guild_name TEXT, user_name_bhmo TEXT, user_name_discord TEXT)")
+conn.execute("CREATE TABLE IF NOT EXISTS guild(id INTEGER PRIMARY KEY, name TEXT, cofarm_channel_id TEXT)")
 conn.commit()
 
 step = 1

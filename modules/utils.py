@@ -177,13 +177,60 @@ def generate_graph(x: list, y: list):
     ax.xaxis.set_major_formatter(dates.DateFormatter("%m/%d"))
     ax.xaxis.set_minor_locator(dates.HourLocator(interval=1))
     # ax.xaxis.set_minor_formatter(dates.DateFormatter("%H"))
-    plt.savefig("trade.png", facecolor="#eeeeee", bbox_inches='tight', pad_inches=0.1, dpi=150)
+    plt.savefig("trade.png", facecolor="#eeeeee", bbox_inches='tight', pad_inches=0.1, dpi=130)
     
 def convert_datetime(unixtime):
     """Convert unixtime to datetime"""
     datetime_str = datetime.datetime.fromtimestamp(unixtime).strftime("%Y-%m-%d %H:%M:%S")
     datetime_obj = datetime.datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
     return datetime_obj
+
+def generate_crop_text(crop: dict, topic: str = None):
+    crop_id      = crop['staticCropId'] # 작물ID
+    status       = crop['status']       # 상태: 0 정상 | 1 다갈증 | 2 나쁜 곰팡이 | 3 지렁이
+    health       = crop['health']       # 체력
+    humidity     = crop['humidity']     # 수분
+    fertility    = crop['fertility']    # 비옥도
+    acceleration = crop['acceleration'] # 성장 가속
+    growth       = crop['growth']       # "dirt" "germination" "maturity" "fruitage"
+
+    if humidity <= 0.1 or fertility <= 0.15 or health <= 0.2:
+        crop_text = "> 🚨"
+    elif humidity <= 0.2 or fertility <= 0.3 or health <= 0.5:
+        crop_text = "> ⚠"
+    else:
+        crop_text = "> "
+    if   growth == "dirt":        crop_text += "🟫"
+    elif growth == "germination": crop_text += "🌱"
+    elif growth == "maturity":    crop_text += "🌿" if crop_id != "pumpkin" else "🥒"
+    elif growth == "fruitage":    crop_text +=f"{fetch_crop_info(crop_id)['icon']}"
+    if 'num' in crop:
+        crop_text += f" **{fetch_crop_info(crop_id)['name_ko']}** ({crop['num']})"
+    else:
+        crop_text += f" **{fetch_crop_info(crop_id)['name_ko']}**"
+    
+    print_factor_count = 0
+    if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: print_factor_count += 1
+    if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: print_factor_count += 1
+    if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: print_factor_count += 1
+
+    if print_factor_count == 1:
+        if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: crop_text +=f" | 🍔 비옥도: `{int(fertility*100)}%`"
+        if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: crop_text +=f" | 💧 수분: `{int(humidity*100)}%`"
+        if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: crop_text +=f" | 💚 체력: `{int(health*100)}%`"
+        if   status == 1: crop_text += " | 🤒 다갈증"
+        elif status == 2: crop_text += " | 🦠 곰팡이"
+        elif status == 3: crop_text += " | 🪱 지렁이"
+    else:
+        if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: crop_text +=f" | 🍔 `{int(fertility*100)}%`"
+        if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: crop_text +=f" | 💧 `{int(humidity*100)}%`"
+        if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: crop_text +=f" | 💚 `{int(health*100)}%`"
+        if   status == 1: crop_text += " | 🤒"
+        elif status == 2: crop_text += " | 🦠"
+        elif status == 3: crop_text += " | 🪱"
+    crop_text += "\n"
+
+    return crop_text
 
 def convert_seconds_to_time_text(in_seconds: int) -> str: # Credit: https://blog.naver.com/wideeyed/221522740612
     t1   = datetime.timedelta(seconds=in_seconds)
