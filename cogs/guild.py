@@ -19,12 +19,12 @@ class Guild(commands.Cog):
 
     @commands.hybrid_command(name="공동농장",
                              aliases=['cofarm', '공팜', 'ㄱㄷㄴㅈ', 'ㄱㄷㄵ', 'ㄱㅍ', 'rhdehdshdwkd', 'rhdvka', 'resw', 'rv'],
-                             description="서버의 공동농장 관련 정보를 보여줍니다.",
+                             description="서버의 공동농장 정보를 확인합니다.",
                              with_app_command=True)
     @commands.guild_only()
     @app_commands.guild_only()
     async def cofarm(self, ctx: commands.Context):
-        await ctx.defer(ephemeral = True)
+        """서버에 있는 공동농장에 관련된 정보를 확인하는 명령어입니다."""
 
         if ctx.guild.id == 809809541385682964: # 달달소 서버만 예외처리 (가스 너무많이 먹음)
             cofarm_id_list = [809843576094588960, 844551435986665473, 844551361932820550]
@@ -35,6 +35,9 @@ class Guild(commands.Cog):
         if len(cofarm_id_list) == 0: # 서버에 공동농장이 없을 때
             await ctx.reply(f"**{ctx.guild.name}**에는 공동농장이 없습니다.")
             return
+
+        response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
+        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.message.author.id), ephemeral=True); return
 
         embeds = []
         for cofarm_id in cofarm_id_list:
@@ -59,8 +62,8 @@ class Guild(commands.Cog):
                     acceleration = crop['acceleration'] # 성장 가속
                     growth       = crop['growth']       # "dirt" "germination" "maturity" "fruitage"
 
-                    score += (health                              **(3-health)   *0.75 +
-                             (fertility if fertility <= 0.9 else 1)**(3-fertility)*0.2 +
+                    score += (health                               **(3-health)   *0.75 +
+                             (fertility if fertility <= 0.9 else 1)**(3-fertility)*0.2  +
                              (humidity  if humidity  <= 0.9 else 1)**(3-humidity )*0.05
                              ) / len(farms)
 
@@ -89,7 +92,10 @@ class Guild(commands.Cog):
                 description = ">>> 🔗 사용하기: </cofarm:886550657916604457>\n"
             description += f"🌱 작물 수: `{crop_count}`/{len(farms)}"
             if crop_count == len(farms): description += "\n"
-            else:                        description += " \❗ \n"
+            else:                        description += " `❗` \n"
+            if str(user_id) in contributions:
+                if contributions[str(user_id)] != 0 and contributions[str(user_id)] != 1:
+                    description += f"🏆 기여도: `{int(contributions[str(user_id)]*100)}%`\n"
             description += f"💯 농장 점수: {int(score*100)}점"
             color = embed_color(score)
             embed=discord.Embed(title=embed_title, description=description, color=discord.Color.from_rgb(color[0], color[1], color[2]))

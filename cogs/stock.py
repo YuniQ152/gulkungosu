@@ -1,9 +1,7 @@
 import discord
-from discord import app_commands, Interaction, Object
-from discord.ext import commands, tasks
-from discord.ui import Button, View
+from discord import app_commands, Interaction
+from discord.ext import commands
 from discord.app_commands import Choice
-from typing import Optional, Literal
 from modules.database import *
 from modules.get import *
 from modules.utils import *
@@ -19,11 +17,11 @@ class Stock(commands.Cog):
 
     @commands.hybrid_command(name="그래프",
                              aliases=['graph', '그랲', '그래', 'ㄱㄿ', 'ㄱㄹㅍ', 'ㄱㄹ', 'rmfovm', 'rmfov', 'rmfo', 'rfv', 'rf'],
-                             description="작물의 시세를 그래프로 보여줍니다.",
-                             with_app_command=True)
+                             description="작물의 시세를 그래프로 확인합니다.",
+                             usage="[작물]")
     @app_commands.describe(crop="작물 이름")
     async def graph(self, ctx: commands.Context, *, crop: str):
-        await ctx.defer(ephemeral = True)
+        """최근 1주일간 거래된 작물의 시세를 그래프로 확인하는 명령어입니다. `[작물]`은 작물의 이름이여야 하며 필수로 입력해야 합니다."""
         full_item_list = fetch_item_info_all()
         crop_list = add_ratio_in_dict(crop, full_item_list, "crop", ['송진', '인터갤럭틱 가스'])
 

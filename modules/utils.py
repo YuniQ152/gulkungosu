@@ -254,6 +254,7 @@ def convert_seconds_to_time_text(in_seconds: int) -> str: # Credit: https://blog
     return result
 
 def arrow_number(num: int) -> str:
+    """1이면 🔺1, -3이면 🔻3 이런식으로 바꿔주는 함수"""
     text = ""
     if num > 0:
         text += "🔺"
@@ -261,6 +262,23 @@ def arrow_number(num: int) -> str:
         text += "🔻"
     text += str(abs(num))
     return text
+
+def tilde_number(data) -> str:
+    """num1 ~ num2 이런식으로 바꿔주는 함수"""
+    if isinstance(data, list):
+        if len(data) == 2:
+            if data[0] == data[1]:
+                return f"{data[0]}"
+            else:
+                return f"{data[0]} ~ {data[1]}"
+        else:
+            raise ValueError # 리스트 2개 아니면 안댐
+        
+    elif isinstance(data, int):
+        return str(data)
+
+    else:
+        raise TypeError
 
 def api_error_message(response_code: int, member: discord.Member = None) -> str:
     if response_code == 401:

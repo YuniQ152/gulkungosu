@@ -140,6 +140,12 @@ def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
     inv_item_ids = list(i['staticId'] for i in inv_list) # ['1st-anniversary-cake", 1st-anniversary-medal", ...]
     inv_item_ids = list(set(inv_item_ids)) # 리스트 중복제거
 
+    if inv_weight/inv_max_weight <= 0.5:
+        embed=discord.Embed(title=f"{member.name}님의 인벤토리", description="> 🔗 사용하기: </inventory:882220435847122964>", color=discord.Color.green())
+    else:
+        color = embed_color(((inv_weight/inv_max_weight)-0.5)*2, reverse=True)
+        embed=discord.Embed(title=f"{member.name}님의 인벤토리", description="> 🔗 사용하기: </inventory:882220435847122964>", color=discord.Color.from_rgb(color[0], color[1], color[2]))
+
     items = []
     for i in range(len(inv_item_ids)):
         items.append(fetch_item_info(inv_item_ids[i]))
@@ -147,28 +153,26 @@ def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
         items[i]['total_weight'] = items[i]['weight'] * items[i]['quantity']
     items = sorted(items, key=lambda x: (-x['total_weight']))
 
-    description = "🔗 사용하기: </inventory:882220435847122964>\n"
+    description = ""
     for i in range(min(len(items), 15)):
-        description += f"{items[i]['icon']} **{items[i]['name_ko']}** × {items[i]['quantity']}개 (무게 {items[i]['total_weight']} | {items[i]['total_weight']/inv_max_weight*100:.1f}%)\n"
+        description += f"{items[i]['icon']} **{items[i]['name_ko']}** × {items[i]['quantity']}개 (무게 {items[i]['total_weight']}) `{items[i]['total_weight']/inv_max_weight*100:.1f}%`\n"
     if len(items) > 15:
         etc_weight_sum = 0
 
         for i in range(15, len(items)):
             etc_weight_sum = etc_weight_sum + items[i]['total_weight']
-        description += f"<:blank:908031851732533318> **기타** (무게 {etc_weight_sum} | {etc_weight_sum/inv_max_weight*100:.1f}%)\n"
-    if inv_weight <= inv_max_weight:
-        description += f"<:blank:908031851732533318> **빈 공간** (무게 {inv_max_weight-inv_weight} | {(inv_max_weight-inv_weight)/inv_max_weight*100:.1f}%)\n"
+        description += f"<:blank:908031851732533318> **기타** (무게 {etc_weight_sum}) `{etc_weight_sum/inv_max_weight*100:.1f}%`\n"
+    embed.add_field(name=f"사용 중: {inv_weight} ({(inv_weight/inv_max_weight)*100:.1f}%)", value=description, inline=False)
 
-    if inv_weight/inv_max_weight <= 0.5:
-        embed=discord.Embed(title=f"{member.name}님의 인벤토리", description=description, color=discord.Color.green())
-    else:
-        color = embed_color(((inv_weight/inv_max_weight)-0.5)*2, reverse=True)
-        embed=discord.Embed(title=f"{member.name}님의 인벤토리", description=description, color=discord.Color.from_rgb(color[0], color[1], color[2]))
 
     if inv_weight <= inv_max_weight:
-        footer_text = f"⏲ 전체 무게: {inv_weight}/{inv_max_weight} ({inv_weight/inv_max_weight})"
+        embed.add_field(name=f"빈 공간: {inv_max_weight-inv_weight} ({(inv_max_weight-inv_weight)/inv_max_weight*100:.1f}%)", value="", inline=False)
+
+
+    if inv_weight <= inv_max_weight:
+        footer_text = f"⏲ 전체 무게: {inv_weight}/{inv_max_weight}"
     else:
-        footer_text = f"⏲ 전체 무게: {inv_weight}/{inv_max_weight} ({inv_weight/inv_max_weight}) ❗"
+        footer_text = f"⏲ 전체 무게: {inv_weight}/{inv_max_weight} ❗"
     embed.set_footer(text=footer_text)
 
     return embed
@@ -282,13 +286,13 @@ class User(commands.Cog):
 
     @commands.hybrid_command(name="농장",
                              aliases=['farm', '팜', 'ㄴㅈ', 'ㄵ', 'ㅍ', 'shdwkd', 'vka', 'sw', 'v'],
-                             description="농장의 정보를 보여줍니다.",
-                             with_app_command=True)
+                             description="농장의 정보를 확인합니다.",
+                             usage="(여행자)")
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="농장을 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def farm(self, ctx: commands.Context, member: Optional[discord.Member]):
-        await ctx.defer(ephemeral = True)
+        """여행자의 농장 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
@@ -312,13 +316,13 @@ class User(commands.Cog):
 
     @commands.hybrid_command(name="인벤토리",
                              aliases=['inventory', 'inv', '인벤', '인', 'ㅇㅂㅌㄹ', 'ㅇㅂ', 'ㅇ', 'dlsqpsxhfl', 'dlsqps', 'dls', 'dqxf', 'dq', 'd'],
-                             description="인벤토리의 아이템이 얼마나 무게를 차지하는지 보여줍니다.",
-                             with_app_command=True)
+                             description="인벤토리의 아이템이 얼마나 무게를 차지하는지 확인합니다.",
+                             usage="(여행자)")
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="인벤토리를 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def inventory(self, ctx: commands.Context, member: Optional[discord.Member]):
-        await ctx.defer(ephemeral = True)
+        """여행자의 인벤토리를 조회하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
         response_code, user_id = get_user_id(ctx.guild.id, member.id)
@@ -342,12 +346,12 @@ class User(commands.Cog):
     @commands.hybrid_command(name="활동력",
                              aliases=['health', '활', 'ㅎㄷㄹ', 'ㅎ', 'ghkfehdfur', 'ghkf', 'gef', 'g'],
                              description="현재 활동력과 10분당 회복하는 활동력을 보여줍니다.",
-                             with_app_command=True)
+                             usage="(여행자)")
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="활동력 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
     async def health(self, ctx: commands.Context, member: Optional[discord.Member]):
-        await ctx.defer(ephemeral = True)
+        """활동력 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
@@ -383,12 +387,12 @@ class User(commands.Cog):
     @commands.hybrid_command(name="능력치",
                              aliases=['stats', '능력', 'ㄴㄹㅊ', 'ㄴㄹ', 'smdfurcl', 'smdfur', 'sfc', 'sf'],
                              description="현재 능력치를 보여줍니다.",
-                             with_app_command=True)
+                             usage="(여행자) (비교 대상)")
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="능력치 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.", target="능력치 정보를 비교할 대상.")
     async def stats(self, ctx: commands.Context, member: Optional[discord.Member], target: Optional[discord.Member] = None):
-        await ctx.defer(ephemeral = True)
+        """능력치 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다. `(비교 대상)`은 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 비교 대상은 없습니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
@@ -428,6 +432,49 @@ class User(commands.Cog):
             embed = stats_embed(interaction.user, user_info)
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+
+    @commands.hybrid_command(name="광장입장권",
+                             aliases=['agora_ticket', 'agoraticket', 'ㄱㅈㅇㅈㄱ', '광장', 'ㄱㅈ', '입장권', 'ㅇㅈㄱ', 'rwdwr', 'rhkdwkd', 'rw', 'dlqwkdrnjs', 'dwr'],
+                             description="광장 입장권의 개수와 유효 기간을 확인합니다.",
+                             with_app_command=True)
+    @commands.guild_only()
+    @app_commands.guild_only()
+    async def agora_ticket(self, ctx: commands.Context):
+        """광장 입장권의 개수와 유효 기간을 확인하는 명령어입니다."""
+        response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
+        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
+        response_code, inv_weight, inv_max_weight, inv_list = get_user_inventory(user_id)
+        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
+
+        expired_list = []
+
+        for item in inv_list:
+            if item['staticId'] == "ticket-agora":
+                if "expiredAt" in item:
+                    expired_list.append(int(item['expiredAt']/1000))
+                else:
+                    expired_list.append(9999999999)
+
+        text = ""
+        expired_list.sort()
+        for ticket in expired_list:
+            if ticket == 9999999999:
+                break
+            text += f"<t:{ticket}:f> (<t:{ticket}:R>)\n"
+        interminable = expired_list.count(9999999999) # 무기한 입장권 개수
+        if interminable != 0:
+            text += f"만료일 없음 {interminable}개"
+
+        embed=discord.Embed(
+            title=f"{ctx.author.name}님의 광장 입장권",
+            description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(expired_list)}",
+            color=discord.Color(0xbe1931)
+        )
+        embed.add_field(name="만료일", value=text)
+
+        await ctx.reply(embed=embed, ephemeral=True)
 
 
 

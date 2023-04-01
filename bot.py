@@ -24,14 +24,16 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "✅신규 아이템 & 시설물 업데이트 완료!"),
-            intents = intents)
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨신규 명령어: 광장입장권 & 계산기 도감효과"),
+            intents = intents
+            )
 
-        self.initial_extensions = ["cogs.general",
+        self.initial_extensions = ["cogs.help",
                                    "cogs.guild",
                                    "cogs.user",
                                    "cogs.search",
                                    "cogs.stock",
+                                   "cogs.calculator",
                                    "cogs.log",
                                    "cogs.error"]
 
@@ -39,17 +41,15 @@ class Bot(commands.Bot):
         for extension in self.initial_extensions:
             await self.load_extension(extension)
         await self.tree.sync()
-        # await self.tree.sync(guild = Object(id = 785849670092980225))
         check_loop.start()
-                              
+
     async def on_ready(self):
         print(f"logged in as {bot.user} (ID: {bot.user.id})")
         print(f"Discord.py Version: {discord.__version__}")
-        print("------------")
+        print("----------------")
 
 
 bot = Bot()
-bot.remove_command("help")
 
 @tasks.loop(seconds=600) # 10분
 async def check_loop():
