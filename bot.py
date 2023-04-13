@@ -24,7 +24,7 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨신규 명령어: 광장입장권 & 계산기 도감효과"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨1.3.1 업데이트 완료!"),
             intents = intents
             )
 
@@ -57,9 +57,9 @@ async def check_loop():
     message_channel = bot.get_channel(1025073541743386624) # 메시지를 보낼 채널 (개인 채널 ID)
 
     response_code, user_info = get_user_info(1234)
-    if response_code != 200: await message_channel.send(api_error_message(response_code), ephemeral=True); return
+    if response_code != 200: await message_channel.send(api_error_message(response_code)); return
     user_health = user_info['health'] # 현재 활동력
-    if user_health >= 90:
+    if user_health >= 105:
         await message_channel.send(content=f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 현재 활동력: 💙 {user_health} <@776986070708518913>")
     else:
         await message_channel.send(content=f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 현재 활동력: 💙 {user_health}")
