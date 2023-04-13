@@ -292,7 +292,8 @@ class User(commands.Cog):
     @app_commands.guild_only()
     @app_commands.describe(member="농장을 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def farm(self, ctx: commands.Context, member: Optional[discord.Member]):
-        """여행자의 농장 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다."""
+        """여행자의 농장 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
+        개간된 밭이 10개 이하라면 모든 작물을 보여줍니다. 개간된 밭이 10개 이상이라면 가장 수분이 낮은 작물과 가장 비옥도가 낮은 작물을 5개씩 보여줍니다. 체력이 감소된 작물이 있다면 그 작물도 보여줍니다. 만약에 특별히 위독한 작물이 있다면 해당 작물을 추가로 보여줍니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
@@ -322,7 +323,8 @@ class User(commands.Cog):
     @app_commands.guild_only()
     @app_commands.describe(member="인벤토리를 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def inventory(self, ctx: commands.Context, member: Optional[discord.Member]):
-        """여행자의 인벤토리를 조회하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다."""
+        """여행자의 인벤토리를 조회하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
+        인벤토리에 사용하고 있는 무게와 남아있는 무게를 보여주고, 어떤 아이템이 무게를 가장 많이 차지하는지 최대 15개까지 보여줍니다. 색상은 차지하는 무게가 50% ~ 100%일 때 무게에 따라 초록색, 노란색, 빨간색으로 나타며 그 이하일 경우 초록색, 그 이상일 경우 빨간색으로 나타납니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
         response_code, user_id = get_user_id(ctx.guild.id, member.id)
@@ -351,7 +353,8 @@ class User(commands.Cog):
     @app_commands.guild_only()
     @app_commands.describe(member="활동력 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
     async def health(self, ctx: commands.Context, member: Optional[discord.Member]):
-        """활동력 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다."""
+        """활동력 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
+        현재 활동력과 최대 활동력, 10분당 활동력 회복량을 보여주고 이를 증가시키는 시설물이나 장비, 버프를 보여줍니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
@@ -392,7 +395,10 @@ class User(commands.Cog):
     @app_commands.guild_only()
     @app_commands.describe(member="능력치 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.", target="능력치 정보를 비교할 대상.")
     async def stats(self, ctx: commands.Context, member: Optional[discord.Member], target: Optional[discord.Member] = None):
-        """능력치 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다. `(비교 대상)`은 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 비교 대상은 없습니다."""
+        """능력치 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다. `(비교 대상)`은 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 비교 대상은 없습니다.
+        `(비교 대상)`이 없을 때: `(여행자)`의 능력치를 보여줍니다.
+        `(비교 대상)`이 있을 때: `(여행자)`와 `(비교 대상)`의 능력치를 보여주고 각 능력치별로 어느 쪽의 능력치가 얼마나 높은지 보여줍니다.
+        *(능력치에는 물리 공격력, 물리 방어력, 마법 공격력, 마법 방어력, 기동력, 집중력이 있습니다.)*"""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
@@ -437,12 +443,12 @@ class User(commands.Cog):
 
     @commands.hybrid_command(name="광장입장권",
                              aliases=['agora_ticket', 'agoraticket', 'ㄱㅈㅇㅈㄱ', '광장', 'ㄱㅈ', '입장권', 'ㅇㅈㄱ', 'rwdwr', 'rhkdwkd', 'rw', 'dlqwkdrnjs', 'dwr'],
-                             description="광장 입장권의 개수와 유효 기간을 확인합니다.",
+                             description="광장 입장권의 개수와 만료일 확인합니다.",
                              with_app_command=True)
     @commands.guild_only()
     @app_commands.guild_only()
     async def agora_ticket(self, ctx: commands.Context):
-        """광장 입장권의 개수와 유효 기간을 확인하는 명령어입니다."""
+        """광장 입장권의 개수와 만료일 확인하는 명령어입니다."""
         response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
         if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
         response_code, inv_weight, inv_max_weight, inv_list = get_user_inventory(user_id)
@@ -465,7 +471,7 @@ class User(commands.Cog):
             text += f"<t:{ticket}:f> (<t:{ticket}:R>)\n"
         interminable = expired_list.count(9999999999) # 무기한 입장권 개수
         if interminable != 0:
-            text += f"만료일 없음 {interminable}개"
+            text += f"무기한 광장 입장권 {interminable}개"
 
         embed=discord.Embed(
             title=f"{ctx.author.name}님의 광장 입장권",

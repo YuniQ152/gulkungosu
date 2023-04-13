@@ -65,7 +65,7 @@ class HelpCommand(commands.HelpCommand):
         detail = command.help or command.description
         checks = [f.__qualname__.split('.')[0] for f in command.checks]
         if 'guild_only' in checks:
-            detail += "\n*(이 명령어는 개인 메시지에서 사용할 수 없습니다)*"
+            detail += "\n*(이 명령어는 개인 메시지에서 사용할 수 없습니다.)*"
         embed.add_field(name="세부 정보", value=detail, inline=False)
         if command.aliases:
             embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(command.aliases), inline=False)

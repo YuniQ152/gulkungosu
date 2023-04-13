@@ -9,46 +9,50 @@ from modules.utils import *
 
 
 
-def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
-    if best['type'] == "item" and best['id'] == "gem":
+def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Embed:
+
+    def search_embed_gem(guild_id: int = 0, user_id: int = 0) -> discord.Embed:
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"<:blue_haired_moremi:1037828198261600337>의 재화. 이걸로 작물을 거래하거나 상점에서 아이템을 구매하는 등의 용도로 다양하게 사용할 수 있다.", color=discord.Color(0x5dadec))
         try:
             response_code, user_id = get_user_id(guild_id, user_id)
-            response_code, data = get_user_info(user_id)
-            embed.add_field(name="보유 수량", value=f"`{data['gem']}`", inline=True)
+            response_code, user_info = get_user_info(user_id)
+            embed.add_field(name="보유 수량", value=f"`{user_info['gem']}`", inline=True)
         except:
             pass
         embed.set_footer(text="[재화] 보석")
         return embed
 
 
-    elif best['type'] == "item" and best['id'] == "strawberry":
+    def search_embed_strawberry(guild_id: int = 0, user_id: int = 0) -> discord.Embed:
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"<:blue_haired_moremi:1037828198261600337>의 재화. 이걸로 밭을 개간하거나 시설물을 증축하는 등의 용도로 다양하게 사용할 수 있다.", color=discord.Color(0xbe1931))
         try:
             response_code, user_id = get_user_id(guild_id, user_id)
-            response_code, data = get_user_info(user_id)
-            embed.add_field(name="보유 수량", value=f"`{data['strawberry']}`", inline=True)
+            response_code, user_info = get_user_info(user_id)
+            embed.add_field(name="보유 수량", value=f"`{user_info['strawberry']}`", inline=True)
         except:
             pass
         embed.set_footer(text="[재화] 딸기")
         return embed
 
 
-    elif best['type'] == "item":
+    def search_embed_item(guild_id: int = 0, user_id: int = 0) -> discord.Embed:
         if best['craftables'] is None:
             color = discord.Color(0x202225)
         else:
             color = discord.Color(0x34495e)
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=color)
-        try: # 개인 메시지이거나 로그인이 안된 유저인 사용하는 경우
+
+        try:
             response_code, user_id = get_user_id(guild_id, user_id)
             response_code, weight, max_weight, inv_item_list = get_user_inventory(user_id)
+            response_code, user_info = get_user_info(user_id)
             item_quantity = get_item_quantity_from_inventory(inv_item_list, best['id'])
+            gem = int(user_info['gem'])
             embed.add_field(name="보유 수량", value=f"`{item_quantity}`", inline=True)
             embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
             if best['weight']*item_quantity/max_weight != 0:
                 embed.add_field(name="총 무게", value=f"`{best['weight']*item_quantity}` (`{best['weight']*item_quantity/max_weight*100:.2f}%`)", inline=True)
-        except:
+        except: # 개인 메시지이거나 로그인이 안된 유저인 경우
             embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
 
         if best['options'] is not None:
@@ -134,11 +138,14 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
             for i in range(len(best['ingredients'])):
                 item = fetch_item_info(best['ingredients'][i][0])
                 try:
-                    item_quantity = get_item_quantity_from_inventory(inv_item_list, item['id'])
+                    if item['id'] == "gem":
+                        item_quantity = gem
+                    else:
+                        item_quantity = get_item_quantity_from_inventory(inv_item_list, item['id'])
                     if item_quantity >= best['ingredients'][i][1]:
                         text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개 `({item_quantity}/{best['ingredients'][i][1]})`\n"
                     else:
-                        text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개 `({item_quantity}/{best['ingredients'][i][1]}) ❌`\n"
+                        text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개 `({item_quantity}/{best['ingredients'][i][1]})❌`\n"
                 except:
                     text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개\n"
             embed.add_field(name="제작 방법", value=text, inline=False)
@@ -152,7 +159,7 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
         return embed
 
 
-    elif best['type'] == "crop":
+    def search_embed_crop() -> discord.Embed:
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0x57f288))
         embed.add_field(name="작물 심기", value=f"<:exp:1037828199679266899> 레벨 {best['level']}부터 심을 수 있어요.\n🍓 딸기가 {best['strawberry']}개 필요해요.", inline=False)
         embed.add_field(name="😁 성장 속도",   value=f"{crop_characteristic_to_text(best['growth'])}", inline=True)
@@ -167,7 +174,12 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
         return embed
 
 
-    elif best['type'] == "facility":
+    def search_embed_facility() -> discord.Embed:
+    
+        def facility_option_text(name: str, value: str) -> str:
+            text = f"**{name}**\n```diff\n{value}```"
+            return text
+    
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0xa84300))
         embed.add_field(name="시설물 짓기", value=f"<:exp:1037828199679266899> 레벨 {best['level']}부터 지을 수 있어요.", inline=False)
 
@@ -185,34 +197,50 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
 
             options = best['options'][i]
             field_value += "**기능**\n>>> "
-            if "dimension" in options:  
-                field_value += f"⚒ **경작지 크기**\n└ `{options['dimension'][0]}x{options['dimension'][1]}칸`\n"
-            if "maxWeight" in options:
-                field_value += f"⏲ **인벤토리 최대 무게**\n└ `+{options['maxWeight']}`\n"
-            if "maxLuggage" in options:
-                field_value += f"⏲ **광장 인벤토리 최대 무게**\n└ `+{options['maxLuggage']}`\n"
-            if "healAcceleration" in options:
-                field_value += f"💙 **10분당 활동력 회복량**\n└ `+{options['healAcceleration']}`\n"
-            if "dispensingInterval" in options:
-                field_value += f"🚿 **분무 주기**\n└ `{options['dispensingInterval']}시간마다 한 번`\n"
-            if "maxFloor" in options:
-                field_value += f"🪜 **최심 층수**\n└ `지하 {options['maxFloor']}층`\n"
+            if "dimension" in options:
+                field_value += facility_option_text(name="⚒ 경작지 크기",
+                                                    value=f"{options['dimension'][0]}x{options['dimension'][1]}칸")
             if "maxLevel" in options:
-                field_value += f"📈 **레벨 제한**\n└ `{options['maxLevel']}레벨 아이템까지 제작 가능`\n"
-            if "wildAnimalAvoidance" in options:
-                field_value += f"⛓ **야생동물 방어율**\n└ `+{int(options['wildAnimalAvoidance']*100)}%p`\n"
-            if "taskLength" in options:
-                field_value += f"🔀 **작업 대기열 길이**\n└ `{options['taskLength']}`\n"
-            if "maxDistance" in options:
-                field_value += f"🚏 **순간이동 최대 거리**\n└ `{options['maxDistance']}칸`\n"
-            if "craftBonus" in options:
-                field_value += f"✨ **제작 효율 증가**\n└ `+{int(options['craftBonus']*100)}%p`\n" if options['craftBonus'] != 0 else ""
-            if "taskBonus" in options:
-                field_value += f"✨ **작업 빠르기 증가**\n└ `{int(options['taskBonus']*100)}%p`\n" if options['taskBonus'] != 0 else ""
+                field_value += facility_option_text(name="📈 레벨 제한",
+                                                    value=f"{options['maxLevel']}레벨 아이템까지 제작 가능")
             if "pantryLevel" in options:
-                field_value += f"pantryLevel (뭔지모름)\n└ `{options['pantryLevel']}`\n"
+                field_value += facility_option_text(name="📈 레벨 제한",
+                                                    value=f"{options['pantryLevel']}레벨 아이템까지 등록 가능")
+            if "maxWeight" in options:
+                field_value += facility_option_text(name="⏲ 인벤토리 최대 무게",
+                                                    value=f"+{format(options['maxWeight'], ',')}")
+            if "maxLuggage" in options:
+                field_value += facility_option_text(name="⏲ 광장 인벤토리 최대 무게",
+                                                    value=f"+{format(options['maxLuggage'], ',')}")
             if "pantryCapacity" in options:
-                field_value += f"pantryCapacity (뭔지모름)\n└ `{options['pantryCapacity']}`\n"
+                field_value += facility_option_text(name="⏲ 자판기 인벤토리 최대 무게",
+                                                    value=f"{format(options['pantryCapacity'], ',')}")
+            if "healAcceleration" in options:
+                field_value += facility_option_text(name="💙 활동력 회복량 변화",
+                                                    value=f"+{int(options['healAcceleration']*100)}%p")
+            if "dispensingInterval" in options:
+                field_value += facility_option_text(name="🚿 분무 주기",
+                                                    value=f"{options['dispensingInterval']}시간마다 한 번")
+            if "maxFloor" in options:
+                field_value += facility_option_text(name="🪜 최심 층수",
+                                                    value=f"지하 {options['maxFloor']}층")
+            if "wildAnimalAvoidance" in options:
+                field_value += facility_option_text(name="⛓ 야생동물 방어율",
+                                                    value=f"+{int(options['wildAnimalAvoidance']*100)}%p")
+            if "taskLength" in options:
+                field_value += facility_option_text(name="🔀 작업 대기열 길이",
+                                                    value=f"{options['taskLength']}")
+            if "maxDistance" in options:
+                field_value += facility_option_text(name="🚏 순간이동 최대 거리",
+                                                    value=f"{options['maxDistance']}칸")
+            if "craftBonus" in options:
+                if options['craftBonus'] != 0:
+                    field_value += facility_option_text(name="✨ 제작 효율 증가",
+                                                        value=f"+{int(options['craftBonus']*100)}%p")
+            if "taskBonus" in options:
+                if options['taskBonus'] != 0:
+                    field_value += facility_option_text(name="✨ 작업 빠르기 증가",
+                                                        value=f"+{int(options['taskBonus']*100)}%p")
             if options == {}: # 빈 dict인 경우 (기능이 없는 경우)
                 field_value += "**없음**"
             embed.add_field(name=field_name, value=field_value, inline=True)
@@ -229,7 +257,7 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
         return embed
 
 
-    elif best['type'] == "buff":
+    def search_embed_buff() -> discord.Embed:
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0x5dadec))
         field_value = ""
         items = fetch_item_info_all()
@@ -244,7 +272,7 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
         return embed
 
 
-    elif best['type'] == "stat":
+    def search_embed_stat() -> discord.Embed:
         embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0xe67e22))
         field_value = ""
         items = fetch_item_info_all()
@@ -272,6 +300,22 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0):
 
         embed.set_footer(text=f"[능력치]")
         return embed
+
+    
+    if best['type'] == "item" and best['id'] == "gem":
+        return search_embed_gem(guild_id, user_id)
+    elif best['type'] == "item" and best['id'] == "strawberry":
+        return search_embed_strawberry(guild_id, user_id)
+    elif best['type'] == "item":
+        return search_embed_item(guild_id, user_id)
+    elif best['type'] == "crop":
+        return search_embed_crop()
+    elif best['type'] == "facility":
+        return search_embed_facility()
+    elif best['type'] == "buff":
+        return search_embed_buff()
+    elif best['type'] == "stat":
+        return search_embed_stat()
 
 
 
@@ -322,12 +366,14 @@ class Search(commands.Cog):
     @app_commands.describe(keyword="검색할 항목 (아이템/작물/시설물/버프/능력치 이름)")
     async def search(self, ctx: commands.Context, *, keyword: str):
         """아이템, 작물, 시설물, 버프, 능력치를 검색하여 관련 정보를 확인하는 명령어입니다. `[검색어]`는 검색할 아이템, 작물, 시설물, 버프, 능력치의 이름이여야 하며 필수로 입력해야 합니다.
-        검색어와 가장 유사한 파머모에 존재하는 항목을 나타내며 검색 결과에 따라 하나의 결과가 나올 수도, 여러 개의 결과가 나올 수도, 아니면 검색 결과가 나타나는 대신 추천 검색어가 나타날 수도 있습니다.
+        검색어와 가장 유사한 파머모에 존재하는 항목을 나타내며 검색 결과에 따라 하나의 결과가 나올 수도, 여러 개의 결과가 나올 수도, 아니면 검색 결과가 나타나는 대신 추천 검색어가 나타날 수도 있습니다. 검색은 아이템의 한국어 이름, 영어 이름, 또는 아이템 ID로 검색할 수 있으며, 한국어 이름의 경우 초성으로도 검색이 가능합니다.
         __아이템__의 경우 어두운 회색(제작 방법이 없는 경우) 또는 코발트 블루색(제작 방법이 있는 경우)으로 나타나며, 명령어를 사용한 여행자의 아이템 보유 개수, 개당 무게, 아이템 제작 방법 등의 정보가 나타납니다.
         __작물__의 경우 춘록색으로 나타나며, 작물을 심는 데 필요한 딸기, 성장 속도, 필요 수분/비옥도 등의 정보가 나타납니다.
         __시설물__의 경우 갈색으로 나타나며, 시설물의 착수 비용과 기능 등의 정보가 나타납니다.
         __버프__의 경우 하늘색으로 나타나며, 먹었을 때 발동하는 음식 목록과, 음식별 버프 지속시간이 나타납니다.
         __능력치__의 경우 주황색으로 나타나며, 해당 능력치를 변동시키는 아이템 목록과, 아이템별 능력치 변동 수치가 나타납니다.
+        *(버프와 능력치는 조만간 별도의 명령어로 분리시킬 예정이니 참고해 주세요.)*
+        *(`item`, `템`, `ㅇㅇㅌ`, `ㅌ`, `dkdlxpa`, `xpa`, `x` 동어의가 조만간 비활성화될 예정이니 참고해 주세요.)*
         """
         db_list = search_db(keyword)
 

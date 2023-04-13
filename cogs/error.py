@@ -19,7 +19,10 @@ class Error(commands.Cog):
         else:
             usage = f"{ctx.prefix}{ctx.command.full_parent_name} {ctx.command.name} {ctx.command.usage}"
 
-        if isinstance(error, commands.MissingRequiredArgument):
+        
+        if isinstance(error, commands.RangeError):
+            pass
+        elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply(f"필요한 인자가 없습니다.\n올바른 사용법: `{usage}`")
         elif isinstance(error, commands.BadArgument):
             await ctx.reply(f"인자 형식이 잘못되었습니다.\n올바른 사용법: `{usage}`")
