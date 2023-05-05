@@ -93,7 +93,7 @@ crops        = data['crop']
 facilities   = data['facility']
 achievements = data['achievement']
 buffs        = data['buff']
-stats        = data['stat']
+options      = data['option']
 
 conn = sqlite3.connect("db.sqlite3")
 cur = conn.cursor()
@@ -195,11 +195,11 @@ if 5 in RUN_STEP:
 
 step = 6
 def add_stat():
-    print_step(f"앞으로 {len(stats)}개의 능력치를 데이터베이스에 추가합니다.")
-    for i in range(len(stats)):
-        cur.execute("INSERT OR REPLACE INTO stat(id, icon, name_ko, name_en, description_ko, description_en, aliases) VALUES (?,?,?,?,?,?,?)", (list(stats[i].values())))
+    print_step(f"앞으로 {len(options)}개의 능력치를 데이터베이스에 추가합니다.")
+    for i in range(len(options)):
+        cur.execute("INSERT OR REPLACE INTO stat(id, icon, name_ko, name_en, description_ko, description_en, aliases) VALUES (?,?,?,?,?,?,?)", (list(options[i].values())))
         conn.commit()
-        print_step(f"[{stats[i]['icon']} {stats[i]['name_ko']}] 능력치 추가됨. ({i+1}/{len(stats)})")
+        print_step(f"[{options[i]['icon']} {options[i]['name_ko']}] 능력치 추가됨. ({i+1}/{len(options)})")
     print_step(f"완료. 모든 능력치를 성공적으로 추가했습니다.\n")
 if 6 in RUN_STEP:
     add_stat()

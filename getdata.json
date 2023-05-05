@@ -79,6 +79,7 @@
         "벼 상자",
         "벽돌",
         "보석",
+        "비닐 천막",
         "비료",
         "빛나는 하트",
         "사과",
@@ -128,6 +129,7 @@
         "예약된 공간",
         "옥수수",
         "옥수수 상자",
+        "우산",
         "우유",
         "원석",
         "유리",
@@ -301,27 +303,19 @@
             "description_ko": "마음까지 차가워 지는 느낌이 들면서 잠시 동안 집중력이 30 오르지만 모든 방어력이 10 떨어진다.",
             "description_en": "The cold aura makes your concentration increase by 30, but both the resistances decreases by 10.",
             "aliases": null
+        },
+        {
+            "id": "waterproof",
+            "icon": "☔",
+            "options": {"rainResistance": 0.5},
+            "name_ko": "방수",
+            "name_en": "",
+            "description_ko": "비 저항력이 50% 오른다.",
+            "description_en": "",
+            "aliases": null
         }
     ],
-    "stat":[
-        {
-            "id": "healAcceleration",
-            "icon": "💙",
-            "name_ko": "활동력 회복량",
-            "name_en": "",
-            "description_ko": "",
-            "description_en": "",
-            "aliases": null
-        },
-        {
-            "id": "maxHealth",
-            "icon": "💙",
-            "name_ko": "최대 활동력",
-            "name_en": "",
-            "description_ko": "",
-            "description_en": "",
-            "aliases": null
-        },
+    "option":[
         {
             "id": "pf",
             "icon": "",
@@ -390,7 +384,7 @@
             "icon": "<:mentality:1037828204330750032>",
             "name_ko": "신성",
             "name_en": "",
-            "description_ko": "마법 공격력과 집중력이 오르지만 물리 방어력이 내려갑니다.    ",
+            "description_ko": "마법 공격력과 집중력이 오르지만 물리 방어력이 내려갑니다.",
             "description_en": "",
             "aliases": null
         },
@@ -422,6 +416,24 @@
             "aliases": null
         },
         {
+            "id": "healAcceleration",
+            "icon": "💙",
+            "name_ko": "활동력 회복량 변화",
+            "name_en": "",
+            "description_ko": "",
+            "description_en": "",
+            "aliases": null
+        },
+        {
+            "id": "maxHealth",
+            "icon": "💙",
+            "name_ko": "최대 활동력",
+            "name_en": "",
+            "description_ko": "",
+            "description_en": "",
+            "aliases": null
+        },
+        {
             "id": "capacity",
             "icon": "⏲️",
             "name_ko": "광장 인벤토리 무게",
@@ -429,6 +441,15 @@
             "description_ko": "",
             "description_en": "",
             "aliases": "광장 인벤"
+        },
+        {
+            "id": "rainResistance",
+            "icon": "🌧️",
+            "name_ko": "비 저항력",
+            "name_en": "",
+            "description_ko": "",
+            "description_en": "",
+            "aliases": null
         },
         {
             "id": "expiredAt",

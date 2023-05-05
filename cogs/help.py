@@ -33,7 +33,7 @@ class HelpCommand(commands.HelpCommand):
     async def send_cog_help(self, cog):
         ctx = self.context
         channel = self.get_destination()
-        await channel.send("여기에 특정 Cog의 명령어 도움말을 출력하는 코드를 작성합니다.")
+        await channel.send("pass") # 특정 Cog의 명령어 도움말 출력
 
     async def send_group_help(self, group):
         ctx = self.context
@@ -70,20 +70,14 @@ class HelpCommand(commands.HelpCommand):
         if command.aliases:
             embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(command.aliases), inline=False)
 
-        # checks = [f.__qualname__.split('.')[0] for f in command.checks]
-        # if 'guild_only' in checks:
-        #     embed.add_field(name="개인 메시지", value="❌")
-        # else:
-        #     embed.add_field(name="개인 메시지", value="⭕")
-
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
         embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
-    async def send_error_message(self, error):
-        """If there is an error, send a embed containing the error."""
-        channel = self.get_destination() # this defaults to the command context channel
-        await channel.send(error)
+    # async def send_error_message(self, error):
+    #     """If there is an error, send a embed containing the error."""
+    #     channel = self.get_destination() # this defaults to the command context channel
+    #     await channel.send(error)
 
 
 async def on_help_command_error(ctx, error):

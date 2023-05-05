@@ -66,6 +66,10 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
             if "healAcceleration" in best['options']:
                 value = best['options']['healAcceleration']
                 embed.add_field(name="💙 활동력 회복량 변화", value=f"`{int(value*100)}%p`", inline=True)
+
+            if "rainResistance" in best['options']:
+                value = best['options']['rainResistance']
+                embed.add_field(name="🌧️ 비 저항력", value=f"`{int(value*100)}%p`", inline=True)
                 
             option_list = [['maxHealth', '최대 활동력'],
                            ['capacity', '⏲️ 광장 수용 가능 무게'],
@@ -100,6 +104,13 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
                 for i in range(len(buff_id)):
                     buff = fetch_buff_info(buff_id[i])
                     embed.add_field(name=f"먹어서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
+            if "buffByUsing" in best['options']:
+                buff_by_using = best['options']['buffByUsing']
+                buff_id = list(buff_by_using.keys())
+                buff_duration = list(buff_by_using.values())
+                for i in range(len(buff_id)):
+                    buff = fetch_buff_info(buff_id[i])
+                    embed.add_field(name=f"써서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
             if "coupon" in best['options']:
                 coupon = best['options']['coupon']
                 if coupon != "variable": # coupon이 동적이 아닌경우
@@ -283,7 +294,9 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
                         field_value += f"> {item['icon']} **{item['name_ko']}** | {item_category_to_text(item['category'], True)} | "
                         value = item['options'][best['id']]
                         if type(value) is int:
-                            field_value += f"`{arrow_number(item['options'][best['id']])}`"
+                            field_value += f"`{arrow_number(value)}`"
+                        elif type(value) is float:
+                            field_value += f"`{int(value*100)}%`"
                         elif type(value) is list:
                             field_value += f"`{arrow_number(value[1])}` ~ `{arrow_number(value[2])}`"
                         field_value += "\n"
