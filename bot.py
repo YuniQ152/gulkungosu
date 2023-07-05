@@ -41,7 +41,7 @@ class Bot(commands.Bot):
         for extension in self.initial_extensions:
             await self.load_extension(extension)
         await self.tree.sync()
-        check_loop.start()
+        # check_loop.start()
 
     async def on_ready(self):
         print(f"logged in as {bot.user} (ID: {bot.user.id})")

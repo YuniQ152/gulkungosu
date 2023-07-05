@@ -52,7 +52,7 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
             embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
             if best['weight']*item_quantity/max_weight != 0:
                 embed.add_field(name="총 무게", value=f"`{best['weight']*item_quantity}` (`{best['weight']*item_quantity/max_weight*100:.2f}%`)", inline=True)
-        except: # 개인 메시지이거나 로그인이 안된 유저인 경우
+        except: # 개인 메시지이거나 로그인이 안 된 유저인 경우 (또는 파머모 API가 작동하지 않을 때)
             embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
 
         if best['options'] is not None:

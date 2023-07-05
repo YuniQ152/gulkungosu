@@ -73,3 +73,12 @@ def fetch_stat_info_all():
     rows = cur.fetchall()
     stat_list = [dict(rows[i]) for i in range(len(rows))] # [{...}, {...}, {...}, ...]
     return stat_list
+
+def fetch_name_only():
+    rows = []
+    tables = ['item', 'crop', 'facility', 'buff', 'stat']
+    for table in tables:
+        cur.execute(f"SELECT id, name_ko, name_en, aliases FROM {table}")
+        rows += cur.fetchall()
+    rows = [dict(rows[i]) for i in range(len(rows))]
+    return rows

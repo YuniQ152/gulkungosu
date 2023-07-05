@@ -127,12 +127,20 @@ def add_ratio_in_dict(input: str, full_item_list: list, category = None, except_
     items = []
     for item in full_item_list:
         if category is None or item['category'] == category:
-            if item['id'] not in except_item and item['name_ko'] not in except_item and item['name_en'] not in except_item:
+            if (item['id'] not in except_item) and (item['name_ko'] not in except_item) and (item['name_en'] not in except_item):
                 item['ratio'] = compute_match_ratio(input, item)
                 items.append(item)
     items = sorted(items, key=lambda x:-x['ratio']) # ratio 내림차순으로 정렬
 
     return items
+
+def new_ratios(search_word: str, whitelist: list = None):
+    if not whitelist:
+        db_list = fetch_name_only()
+    else:
+        db_list = whitelist
+    for item in db_list:
+        pass
 
 def get_item_quantity_from_inventory(inventory_item_list: list, item_id: str) -> int:
     """여행자 인벤토리에 특정 아이템이 얼마나 있는지 개수를 리턴하는 함수"""
@@ -272,7 +280,7 @@ def tilde_number(data) -> str:
             else:
                 return f"{data[0]} ~ {data[1]}"
         else:
-            raise ValueError # 리스트 2개 아니면 안댐
+            raise ValueError # 리스트 2개 아니면 안 됨
         
     elif isinstance(data, int):
         return str(data)
