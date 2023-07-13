@@ -1,6 +1,6 @@
 import discord
-from discord import app_commands, Interaction, Object
-from discord.ext import commands, tasks
+from discord import app_commands, Interaction
+from discord.ext import commands
 from discord.ui import Button, View
 from discord.app_commands import Choice
 from modules.database import *
@@ -9,10 +9,10 @@ from modules.utils import *
 
 
 
-def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Embed:
+def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.Embed:
 
     def search_embed_gem(guild_id: int = 0, user_id: int = 0) -> discord.Embed:
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"<:blue_haired_moremi:1037828198261600337>의 재화. 이걸로 작물을 거래하거나 상점에서 아이템을 구매하는 등의 용도로 다양하게 사용할 수 있다.", color=discord.Color(0x5dadec))
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"<:blue_haired_moremi:1037828198261600337>의 재화. 이걸로 작물을 거래하거나 상점에서 아이템을 구매하는 등의 용도로 다양하게 사용할 수 있다.", color=discord.Color(0x5dadec))
         try:
             response_code, user_id = get_user_id(guild_id, user_id)
             response_code, user_info = get_user_info(user_id)
@@ -24,7 +24,7 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
 
 
     def search_embed_strawberry(guild_id: int = 0, user_id: int = 0) -> discord.Embed:
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"<:blue_haired_moremi:1037828198261600337>의 재화. 이걸로 밭을 개간하거나 시설물을 증축하는 등의 용도로 다양하게 사용할 수 있다.", color=discord.Color(0xbe1931))
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"<:blue_haired_moremi:1037828198261600337>의 재화. 이걸로 밭을 개간하거나 시설물을 증축하는 등의 용도로 다양하게 사용할 수 있다.", color=discord.Color(0xbe1931))
         try:
             response_code, user_id = get_user_id(guild_id, user_id)
             response_code, user_info = get_user_info(user_id)
@@ -36,39 +36,39 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
 
 
     def search_embed_item(guild_id: int = 0, user_id: int = 0) -> discord.Embed:
-        if best['craftables'] is None:
+        if result['craftables'] is None:
             color = discord.Color(0x202225)
         else:
             color = discord.Color(0x34495e)
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=color)
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"{result['description_ko']}", color=color)
 
         try:
             response_code, user_id = get_user_id(guild_id, user_id)
             response_code, weight, max_weight, inv_item_list = get_user_inventory(user_id)
             response_code, user_info = get_user_info(user_id)
-            item_quantity = get_item_quantity_from_inventory(inv_item_list, best['id'])
+            item_quantity = get_item_quantity_from_inventory(inv_item_list, result['id'])
             gem = int(user_info['gem'])
             embed.add_field(name="보유 수량", value=f"`{item_quantity}`", inline=True)
-            embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
-            if best['weight']*item_quantity/max_weight != 0:
-                embed.add_field(name="총 무게", value=f"`{best['weight']*item_quantity}` (`{best['weight']*item_quantity/max_weight*100:.2f}%`)", inline=True)
+            embed.add_field(name="개당 무게", value=f"`{result['weight']}`", inline=True)
+            if result['weight']*item_quantity/max_weight != 0:
+                embed.add_field(name="총 무게", value=f"`{result['weight']*item_quantity}` (`{result['weight']*item_quantity/max_weight*100:.2f}%`)", inline=True)
         except: # 개인 메시지이거나 로그인이 안된 유저인 경우
-            embed.add_field(name="개당 무게", value=f"`{best['weight']}`", inline=True)
+            embed.add_field(name="개당 무게", value=f"`{result['weight']}`", inline=True)
 
-        if best['options'] is not None:
+        if result['options'] is not None:
             option_list = [['health', '💙 활동력 회복', ''],
                            ['divisibleHealth', '💙 활동력 회복', ' (나눠쓰기 가능)']]
             for key, name, suffix in option_list:
-                if key in best['options']:
-                    value = best['options'][key]
+                if key in result['options']:
+                    value = result['options'][key]
                     embed.add_field(name=name, value=f"`{value}`{suffix}", inline=True)
 
-            if "healAcceleration" in best['options']:
-                value = best['options']['healAcceleration']
+            if "healAcceleration" in result['options']:
+                value = result['options']['healAcceleration']
                 embed.add_field(name="💙 활동력 회복량 변화", value=f"`{int(value*100)}%p`", inline=True)
 
-            if "rainResistance" in best['options']:
-                value = best['options']['rainResistance']
+            if "rainResistance" in result['options']:
+                value = result['options']['rainResistance']
                 embed.add_field(name="🌧️ 비 저항력", value=f"`{int(value*100)}%p`", inline=True)
                 
             option_list = [['maxHealth', '최대 활동력'],
@@ -85,50 +85,50 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
                            ['tenacity', '<:tenacity:1037828205756829777> 완고'],
                            ['harmonicity', '<:harmonicity:1037828202594320496> 조화']]
             for key, name in option_list:
-                if key in best['options']:
-                    value = best['options'][key]
+                if key in result['options']:
+                    value = result['options'][key]
                     if type(value) is int:
                         embed.add_field(name=name, value=f"`{arrow_number(value)}`", inline=True)
                     elif type(value) is list:
                         embed.add_field(name=name, value=f"`{arrow_number(value[1])}` ~ `{arrow_number(value[2])}`", inline=True)
-            if "lifespan" in best['options']:
-                lifespan = best['options']['lifespan']
+            if "lifespan" in result['options']:
+                lifespan = result['options']['lifespan']
                 embed.add_field(name="🧓 기대 수명", value=f"{convert_seconds_to_time_text(int(lifespan/1000))}", inline=True)
-            if "expiredAt" in best['options']:
-                expired_at = best['options']['expiredAt']
+            if "expiredAt" in result['options']:
+                expired_at = result['options']['expiredAt']
                 embed.add_field(name="⌛ 만료일", value=f"<t:{int(expired_at/1000)}:D>", inline=True)
-            if "buffByEating" in best['options']:
-                buff_by_eating = best['options']['buffByEating']
+            if "buffByEating" in result['options']:
+                buff_by_eating = result['options']['buffByEating']
                 buff_id = list(buff_by_eating.keys())
                 buff_duration = list(buff_by_eating.values())
                 for i in range(len(buff_id)):
-                    buff = fetch_buff_info(buff_id[i])
+                    buff = fetch_buff_one(buff_id[i])
                     embed.add_field(name=f"먹어서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
-            if "buffByUsing" in best['options']:
-                buff_by_using = best['options']['buffByUsing']
+            if "buffByUsing" in result['options']:
+                buff_by_using = result['options']['buffByUsing']
                 buff_id = list(buff_by_using.keys())
                 buff_duration = list(buff_by_using.values())
                 for i in range(len(buff_id)):
-                    buff = fetch_buff_info(buff_id[i])
+                    buff = fetch_buff_one(buff_id[i])
                     embed.add_field(name=f"써서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
-            if "coupon" in best['options']:
-                coupon = best['options']['coupon']
+            if "coupon" in result['options']:
+                coupon = result['options']['coupon']
                 if coupon != "variable": # coupon이 동적이 아닌경우
                     coupon = list(coupon.items()) # [('5', {'match': [1, 3]}), ('10', {'pill': 1}), ('20', {'box-strawberry': 1}), ('300', {'medal-heart': 1})]
                     coupon_text = ""
                     for exchange in coupon:
                         for item in list(exchange[1].items()):
-                            i = fetch_item_info(item[0])
+                            i = fetch_item_one(item[0])
                             coupon_text += f"{exchange[0]}개 **➝** {i['icon']} **{i['name_ko']}** × {tilde_number(item[1])}개\n"
                     embed.add_field(name="♻ 교환하기", value=coupon_text, inline=False)
                 else: # 동적인 경우 (작물교환권)
                     embed.add_field(name="♻ 교환하기", value="10개 **➝** **작물** × 1개", inline=False)
                     
-        if best['craftables'] is not None:
-            text = f"<:exp:1037828199679266899> 레벨 {best['level']}부터 만들 수 있어요.\n"
-            for i in range(len(best['craftables'])):
-                craftable = best['craftables'][i]
-                facility = fetch_facility_info(craftable['place'])
+        if result['craftables'] is not None:
+            text = f"<:exp:1037828199679266899> 레벨 {result['level']}부터 만들 수 있어요.\n"
+            for i in range(len(result['craftables'])):
+                craftable = result['craftables'][i]
+                facility = fetch_facility_one(craftable['place'])
                 if craftable['amount'][0] == craftable['amount'][1] and craftable['amount'][0] == 1:
                     text += f"{facility['icon']} **{facility['name_ko']}**에서 1개 만들어져요."
                 else:
@@ -138,48 +138,48 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
                     coproducts = list(craftable['coproducts'].items())
                     text += " 부산물로 "
                     for coproduct in coproducts:
-                        item = fetch_item_info(coproduct[0])
+                        item = fetch_item_one(coproduct[0])
                         text += f"{item['icon']} **{item['name_ko']}** {tilde_number(coproduct[1])}개, "
                     text = text[:-2]
                     text += "를 얻어요.\n"
                 else:
                     text += "\n"
-            if type(best['ingredients']) is dict: # dict 형식인 경우 - {'soy-paste': 3, 'tofu': 1, 'potato': 1, 'msg': 1}
-                best['ingredients'] = list(best['ingredients'].items()) # [('soy-paste', 3), ('tofu', 1), ('potato', 1), ('msg', 1)]
-            for i in range(len(best['ingredients'])):
-                item = fetch_item_info(best['ingredients'][i][0])
+            if type(result['ingredients']) is dict: # dict 형식인 경우 - {'soy-paste': 3, 'tofu': 1, 'potato': 1, 'msg': 1}
+                result['ingredients'] = list(result['ingredients'].items()) # [('soy-paste', 3), ('tofu', 1), ('potato', 1), ('msg', 1)]
+            for i in range(len(result['ingredients'])):
+                item = fetch_item_one(result['ingredients'][i][0])
                 try:
                     if item['id'] == "gem":
                         item_quantity = gem
                     else:
                         item_quantity = get_item_quantity_from_inventory(inv_item_list, item['id'])
-                    if item_quantity >= best['ingredients'][i][1]:
-                        text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개 `({item_quantity}/{best['ingredients'][i][1]})`\n"
+                    if item_quantity >= result['ingredients'][i][1]:
+                        text += f"> {item['icon']} **{item['name_ko']}** × {result['ingredients'][i][1]}개 `({item_quantity}/{result['ingredients'][i][1]})`\n"
                     else:
-                        text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개 `({item_quantity}/{best['ingredients'][i][1]})❌`\n"
+                        text += f"> {item['icon']} **{item['name_ko']}** × {result['ingredients'][i][1]}개 `({item_quantity}/{result['ingredients'][i][1]})❌`\n"
                 except:
-                    text += f"> {item['icon']} **{item['name_ko']}** × {best['ingredients'][i][1]}개\n"
+                    text += f"> {item['icon']} **{item['name_ko']}** × {result['ingredients'][i][1]}개\n"
             embed.add_field(name="제작 방법", value=text, inline=False)
 
-        footer_text = f"[아이템] {item_category_to_text(best['category'])}"
-        footer_text += " | 옮기기 불가" if best['vested']      == 1 else " | 옮기기 가능"
-        footer_text += " | 버리기 불가" if best['planted']     == 1 else ""
-        footer_text += " | 사용 아이템" if best['usable']      == 1 else ""
-        footer_text += " | 도감 아이템" if best['collectible'] == 1 else " | 박제 불가"
+        footer_text = f"[아이템] {item_category_to_text(result['category'])}"
+        footer_text += " | 옮기기 불가" if result['vested']      == 1 else " | 옮기기 가능"
+        footer_text += " | 버리기 불가" if result['planted']     == 1 else ""
+        footer_text += " | 사용 아이템" if result['usable']      == 1 else ""
+        footer_text += " | 도감 아이템" if result['collectible'] == 1 else " | 박제 불가"
         embed.set_footer(text=footer_text)
         return embed
 
 
     def search_embed_crop() -> discord.Embed:
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0x57f288))
-        embed.add_field(name="작물 심기", value=f"<:exp:1037828199679266899> 레벨 {best['level']}부터 심을 수 있어요.\n🍓 딸기가 {best['strawberry']}개 필요해요.", inline=False)
-        embed.add_field(name="😁 성장 속도",   value=f"{crop_characteristic_to_text(best['growth'])}", inline=True)
-        embed.add_field(name="💧 필요 수분",   value=f"{crop_characteristic_to_text(best['water'])}",  inline=True)
-        embed.add_field(name="🍔 필요 비옥도", value=f"{crop_characteristic_to_text(best['soil'])}",   inline=True)
-        embed.add_field(name="🦠 병충해 내성", value=f"{crop_characteristic_to_text(best['health'])}", inline=True)
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"{result['description_ko']}", color=discord.Color(0x57f288))
+        embed.add_field(name="작물 심기", value=f"<:exp:1037828199679266899> 레벨 {result['level']}부터 심을 수 있어요.\n🍓 딸기가 {result['strawberry']}개 필요해요.", inline=False)
+        embed.add_field(name="😁 성장 속도",   value=f"{crop_characteristic_to_text(result['growth'])}", inline=True)
+        embed.add_field(name="💧 필요 수분",   value=f"{crop_characteristic_to_text(result['water'])}",  inline=True)
+        embed.add_field(name="🍔 필요 비옥도", value=f"{crop_characteristic_to_text(result['soil'])}",   inline=True)
+        embed.add_field(name="🦠 병충해 내성", value=f"{crop_characteristic_to_text(result['health'])}", inline=True)
 
         footer_text = "[작물] "
-        if best['is_tree'] == 1: footer_text += "나무"
+        if result['is_tree'] == 1: footer_text += "나무"
         else: footer_text += "일반"
         embed.set_footer(text=footer_text)
         return embed
@@ -191,22 +191,22 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
             text = f"**{name}**\n```diff\n{value}```"
             return text
     
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0xa84300))
-        embed.add_field(name="시설물 짓기", value=f"<:exp:1037828199679266899> 레벨 {best['level']}부터 지을 수 있어요.", inline=False)
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"{result['description_ko']}", color=discord.Color(0xa84300))
+        embed.add_field(name="시설물 짓기", value=f"<:exp:1037828199679266899> 레벨 {result['level']}부터 지을 수 있어요.", inline=False)
 
-        for i in range(len(best['build_costs'])):
+        for i in range(len(result['build_costs'])):
             field_name = ""
             for coproduct in range(i+1): field_name += "⭐"
             field_name += " 단계"
 
-            build_costs = best['build_costs'][i]
+            build_costs = result['build_costs'][i]
             build_costs = list(build_costs.items())
-            field_value = f"**착수 비용**\n> 🍓 **딸기** × {best['level']*(i+1)*(i+1)}개\n"
+            field_value = f"**착수 비용**\n> 🍓 **딸기** × {result['level']*(i+1)*(i+1)}개\n"
             for coproduct in range(len(build_costs)):
-                item = fetch_item_info(build_costs[coproduct][0])
+                item = fetch_item_one(build_costs[coproduct][0])
                 field_value += f"> {item['icon']} **{item['name_ko']}**  × {build_costs[coproduct][1]}개\n"
 
-            options = best['options'][i]
+            options = result['options'][i]
             field_value += "**기능**\n>>> "
             if "dimension" in options:
                 field_value += facility_option_text(name="⚒ 경작지 크기",
@@ -257,10 +257,10 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
             embed.add_field(name=field_name, value=field_value, inline=True)
 
         footer_text = "[시설물] "
-        if type(best['size']) is list:
-            footer_text += f"일반 시설물 | {best['size'][0]}x{best['size'][1]}"
-            if best['rotatable'] == 1:
-                footer_text += f" 또는 {best['size'][1]}x{best['size'][0]}"
+        if type(result['size']) is list:
+            footer_text += f"일반 시설물 | {result['size'][0]}x{result['size'][1]}"
+            if result['rotatable'] == 1:
+                footer_text += f" 또는 {result['size'][1]}x{result['size'][0]}"
             footer_text += " 크기"
         else:
             footer_text += f"광장 시설물"
@@ -269,12 +269,12 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
 
 
     def search_embed_buff() -> discord.Embed:
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0x5dadec))
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"{result['description_ko']}", color=discord.Color(0x5dadec))
         field_value = ""
-        items = fetch_item_info_all()
+        items = fetch_item_all()
         for item in items:
             try:
-                field_value += f"> {item['icon']} **{item['name_ko']}** | {convert_seconds_to_time_text(item['options']['buffByEating'][best['id']]/1000)}\n"
+                field_value += f"> {item['icon']} **{item['name_ko']}** | {convert_seconds_to_time_text(item['options']['buffByEating'][result['id']]/1000)}\n"
             except:
                 pass
         embed.add_field(name="이 버프를 가지고 있는 음식", value=field_value, inline=False)
@@ -284,15 +284,15 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
 
 
     def search_embed_stat() -> discord.Embed:
-        embed=discord.Embed(title=f"{best['icon']} {best['name_ko']}", description=f"{best['description_ko']}", color=discord.Color(0xe67e22))
+        embed=discord.Embed(title=f"{result['icon']} {result['name_ko']}", description=f"{result['description_ko']}", color=discord.Color(0xe67e22))
         field_value = ""
-        items = fetch_item_info_all()
-        if best['id'] != "expiredAt":
+        items = fetch_item_all()
+        if result['id'] != "expiredAt":
             for item in items:
                 if item['options'] is not None: # item에 옵션이 있고
-                    if best['id'] in item['options']: # best['id']에 검색하려는 옵션이 있는 경우
+                    if result['id'] in item['options']: # best['id']에 검색하려는 옵션이 있는 경우
                         field_value += f"> {item['icon']} **{item['name_ko']}** | {item_category_to_text(item['category'], True)} | "
-                        value = item['options'][best['id']]
+                        value = item['options'][result['id']]
                         if type(value) is int:
                             field_value += f"`{arrow_number(value)}`"
                         elif type(value) is float:
@@ -308,26 +308,26 @@ def search_embed(best: dict, guild_id: int = 0, user_id: int = 0) -> discord.Emb
             for item in items:
                 if item['options'] is not None:
                     if "expiredAt" in item['options']:
-                        field_value += f"> {item['icon']} **{item['name_ko']}** | <t:{int(item['options'][best['id']] /1000)}:D>에 만료\n"
+                        field_value += f"> {item['icon']} **{item['name_ko']}** | <t:{int(item['options'][result['id']] /1000)}:D>에 만료\n"
             embed.add_field(name="기간제 아이템", value=field_value, inline=False)
 
         embed.set_footer(text=f"[능력치]")
         return embed
 
     
-    if best['type'] == "item" and best['id'] == "gem":
+    if result['type'] == "item" and result['id'] == "gem":
         return search_embed_gem(guild_id, user_id)
-    elif best['type'] == "item" and best['id'] == "strawberry":
+    elif result['type'] == "item" and result['id'] == "strawberry":
         return search_embed_strawberry(guild_id, user_id)
-    elif best['type'] == "item":
+    elif result['type'] == "item":
         return search_embed_item(guild_id, user_id)
-    elif best['type'] == "crop":
+    elif result['type'] == "crop":
         return search_embed_crop()
-    elif best['type'] == "facility":
+    elif result['type'] == "facility":
         return search_embed_facility()
-    elif best['type'] == "buff":
+    elif result['type'] == "buff":
         return search_embed_buff()
-    elif best['type'] == "stat":
+    elif result['type'] == "stat":
         return search_embed_stat()
 
 
@@ -388,6 +388,7 @@ class Search(commands.Cog):
         *(버프와 능력치는 조만간 별도의 명령어로 분리시킬 예정이니 참고해 주세요.)*
         *(`item`, `템`, `ㅇㅇㅌ`, `ㅌ`, `dkdlxpa`, `xpa`, `x` 동어의가 조만간 비활성화될 예정이니 참고해 주세요.)*
         """
+        
         db_list = search_db(keyword)
 
         result = []
@@ -400,7 +401,7 @@ class Search(commands.Cog):
                 break
 
         if result_count == 0: # embeds가 없을 때
-            if db_list[0]['ratio'] >= 0.5 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.02 or db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15: # ratio가 50% 이상이고 다음 ratio에 비해 2% 이상 높거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
+            if db_list[0]['ratio'] >= 0.5 and db_list[0]['ratio'] > db_list[1]['ratio']*1.02 or db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15: # ratio가 50% 이상이고 다음 ratio에 비해 2% 이상 높거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
                 if isinstance(ctx.channel, discord.channel.DMChannel):
                     embed = search_embed(db_list[0], 0, 0)
                 else:
@@ -441,8 +442,9 @@ class Search(commands.Cog):
             else:
                 await ctx.reply(f"`{keyword}`에 해당하는 검색 결과가 여러 개입니다.\n아래 버튼을 눌러 원하는 결과를 확인하세요.", view=SearchView(result_count, result, ctx.guild.id, ctx.author.id))
     @search.autocomplete("keyword")
-    async def search_autocomplete(self, interaction: Interaction, current: str,) -> Choice[str]:
-        choice = ['벽돌', '모래', '성냥', '라면', '연구소', '대장간', '조리실', '양파', '크로뮴', '고구마', '효모', '군고구마', '호박']
+    async def search_autocomplete(self, interaction: Interaction, current: str) -> Choice[str]:
+        db_list = search_db(current)
+        choice = [d['name_ko'] for d in db_list][:25]
         return [Choice(name=keyword, value=keyword) for keyword in choice if current.lower() in keyword.lower()]
 
 

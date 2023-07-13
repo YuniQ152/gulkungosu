@@ -1,7 +1,6 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.errors import Forbidden
 
 class HelpCommand(commands.HelpCommand):
     def __init__(self):
@@ -27,7 +26,7 @@ class HelpCommand(commands.HelpCommand):
                               "이러한 것들이 필요하시다면 [고등어 서버](https://discord.gg/WXjQZ3eJs5)의 포스트에 남겨주세요.",
                         inline=False)
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
-        embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
+        embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
     async def send_cog_help(self, cog):
@@ -48,7 +47,7 @@ class HelpCommand(commands.HelpCommand):
         if group.aliases:
             embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(group.aliases), inline=False)
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
-        embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
+        embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
     async def send_command_help(self, command):
@@ -71,7 +70,7 @@ class HelpCommand(commands.HelpCommand):
             embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(command.aliases), inline=False)
 
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
-        embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
+        embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
     # async def send_error_message(self, error):

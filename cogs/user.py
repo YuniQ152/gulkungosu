@@ -148,7 +148,7 @@ def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
 
     items = []
     for i in range(len(inv_item_ids)):
-        items.append(fetch_item_info(inv_item_ids[i]))
+        items.append(fetch_item_one(inv_item_ids[i]))
         items[i]['quantity'] = get_item_quantity_from_inventory(inv_list, inv_item_ids[i])
         items[i]['total_weight'] = items[i]['weight'] * items[i]['quantity']
     items = sorted(items, key=lambda x: (-x['total_weight']))
@@ -203,10 +203,10 @@ def health_embed(member, user_info, facilities, equipments):
             health_accel_text += f"> 🛋 **안방** × {bedroom_count}개 | `{arrow_number(bedroom_accel)}`\n"
         for equipment in equipments:
             if "healAcceleration" in equipment['options']:
-                item_info = fetch_item_info(equipment['staticId'])
+                item_info = fetch_item_one(equipment['staticId'])
                 health_accel_text += f"> {item_info['icon']} **{item_info['name_ko']}** | `{arrow_number(equipment['options']['healAcceleration'])}`\n"
         for buff in user_info['buffs']:
-            buff_info = fetch_buff_info(buff)
+            buff_info = fetch_buff_one(buff)
             if "healAcceleration" in buff_info['options']:
                 health_accel_text += f"> {buff_info['icon']} **{buff_info['name_ko']}** | `{arrow_number(buff_info['options']['healAcceleration'])}` | <t:{int(user_info['buffs'][buff]/1000)}:R>\n"
         embed.add_field(name="활동력 회복량 증가", value=health_accel_text)
@@ -215,10 +215,10 @@ def health_embed(member, user_info, facilities, equipments):
         max_health_text = "> <:blank:908031851732533318> **기본** | `🔺100`\n"
         for equipment in equipments:
             if "maxHealth" in equipment['options']:
-                item_info = fetch_item_info(equipment['staticId'])
+                item_info = fetch_item_one(equipment['staticId'])
                 max_health_text += f"> {item_info['icon']} **{item_info['name_ko']}** | `{arrow_number(equipment['options']['maxHealth'])}`\n"
         for buff in user_info['buffs']:
-            buff_info = fetch_buff_info(buff)
+            buff_info = fetch_buff_one(buff)
             if "maxHealth" in buff_info['options']:
                 max_health_text += f"> {buff_info['icon']} **{buff_info['name_ko']}** | `{arrow_number(buff_info['options']['maxHealth'])}` | <t:{int(user_info['buffs'][buff]/1000)}:R>\n"
         embed.add_field(name="최대 활동력 증가", value=max_health_text)
@@ -292,7 +292,7 @@ class User(commands.Cog):
     @app_commands.guild_only()
     @app_commands.describe(member="농장을 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def farm(self, ctx: commands.Context, member: Optional[discord.Member]):
-        """여행자의 농장 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
+        """사용자의 농장 정보를 확인하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
         개간된 밭이 10개 이하라면 모든 작물을 보여줍니다. 개간된 밭이 10개 이상이라면 가장 수분이 낮은 작물과 가장 비옥도가 낮은 작물을 5개씩 보여줍니다. 체력이 감소된 작물이 있다면 그 작물도 보여줍니다. 만약에 특별히 위독한 작물이 있다면 해당 작물을 추가로 보여줍니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
@@ -323,7 +323,7 @@ class User(commands.Cog):
     @app_commands.guild_only()
     @app_commands.describe(member="인벤토리를 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def inventory(self, ctx: commands.Context, member: Optional[discord.Member]):
-        """여행자의 인벤토리를 조회하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
+        """사용자의 인벤토리를 조회하는 명령어입니다. `(여행자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
         인벤토리에 사용하고 있는 무게와 남아있는 무게를 보여주고, 어떤 아이템이 무게를 가장 많이 차지하는지 최대 15개까지 보여줍니다. 색상은 차지하는 무게가 50% ~ 100%일 때 무게에 따라 초록색, 노란색, 빨간색으로 나타며 그 이하일 경우 초록색, 그 이상일 경우 빨간색으로 나타납니다."""
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
@@ -447,8 +447,13 @@ class User(commands.Cog):
                              with_app_command=True)
     @commands.guild_only()
     @app_commands.guild_only()
-    async def agora_ticket(self, ctx: commands.Context):
-        """광장 입장권의 개수와 만료일 확인하는 명령어입니다."""
+    @app_commands.describe(member="광장 입장권 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
+    async def agora_ticket(self, ctx: commands.Context, member: Optional[discord.Member]):
+        """광장 입장권의 개수와 만료일 확인하는 명령어입니다.
+        만료일이 따로 없을 경우 "무기한"으로 나타납니다."""
+
+        if member is None: # 대상이 주어지지 않은 경우 본인
+            member = ctx.message.author
         response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
         if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
         response_code, inv_weight, inv_max_weight, inv_list = get_user_inventory(user_id)

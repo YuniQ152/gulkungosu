@@ -24,7 +24,7 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "💫 신규 아이템 & 버프 추가 완료!"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✅ 검색 기능 최적화 및 개선 완료!"),
             intents = intents
         )
 
@@ -34,6 +34,7 @@ class Bot(commands.Bot):
                                    "cogs.search",
                                    "cogs.stock",
                                    "cogs.calculator",
+                                #    "cogs.translator",
                                    "cogs.log",
                                    "cogs.error"]
 
@@ -41,7 +42,7 @@ class Bot(commands.Bot):
         for extension in self.initial_extensions:
             await self.load_extension(extension)
         await self.tree.sync()
-        check_loop.start()
+        # health_check.start()
 
     async def on_ready(self):
         print(f"logged in as {bot.user} (ID: {bot.user.id})")
@@ -52,7 +53,7 @@ class Bot(commands.Bot):
 bot = Bot()
 
 @tasks.loop(seconds=600) # 10분
-async def check_loop():
+async def health_check():
     await bot.wait_until_ready()
     message_channel = bot.get_channel(1025073541743386624) # 메시지를 보낼 채널 (개인 채널 ID)
 

@@ -1,11 +1,6 @@
 import discord
-from discord import app_commands, Interaction
 from discord.ext import commands
-from typing import Optional
 from datetime import datetime
-from modules.database import *
-from modules.get import *
-from modules.utils import *
 
 
 
@@ -20,15 +15,15 @@ class Log(commands.Cog):
         if message.content.startswith("."):
             # if message.author.id != 776986070708518913:
                 if isinstance(message.channel, discord.DMChannel): # DM
-                    text = f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} || DM || {message.author.name + '#' + message.author.discriminator} || {message.content}"
+                    text = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} || DM || {message.author.name + '#' + message.author.discriminator} || {message.content}"
                     print(text)
                 else:
-                    print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} || {message.guild.name} || {message.channel.name} || {message.author.name + '#' + message.author.discriminator} || {message.content}")
+                    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} || {message.guild.name} || {message.channel.name} || {message.author.name + '#' + message.author.discriminator} || {message.content}")
 
                     embed = discord.Embed(title="명령어 사용됨", description="", color=discord.Color.blurple())
                     embed.add_field(name="정보", value=f">>> **서버:** {message.guild.name}\n**채널:** {message.channel.mention} (#{message.channel.name})\n**유저:** {message.author.name}#{message.author.discriminator}", inline=False)
                     embed.add_field(name="내용", value=message.content, inline=False)
-                    embed.timestamp = datetime.datetime.now()
+                    embed.timestamp = datetime.now()
                     message_channel = self.bot.get_channel(1050124516652752921)
                     await message_channel.send(embed=embed)
 

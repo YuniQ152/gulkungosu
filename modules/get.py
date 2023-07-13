@@ -1,4 +1,4 @@
-import discord, os, requests, json
+import os, requests, json
 from dotenv import load_dotenv
 
 load_dotenv()

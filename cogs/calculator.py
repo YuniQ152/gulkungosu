@@ -25,10 +25,10 @@ def collection_power_embed(collected):
     embed=discord.Embed(title="도감 효과 계산기",
                         description=description,
                         color=discord.Color(0x57f288))
-    if 0 <= collected and collected <= 135:
+    if 0 <= collected and collected <= 136:
         embed.set_footer(text="이것은 공식을 유추하여 구한 값이에요. 실제 버프 효과와 약간의 차이가 있을 수 있어요.")
     else:
-        embed.set_footer(text="실제 파머모에서는 일반 도감에 0 ~ 135개의 아이템만 박제할 수 있어요. 이건 그냥 재미로 봐 주세요.")
+        embed.set_footer(text="실제 파머모에서는 일반 도감에 0 ~ 136개의 아이템만 박제할 수 있어요. 이건 그냥 재미로 봐 주세요.")
 
     return embed
 
@@ -58,16 +58,16 @@ class Calculator(commands.Cog):
                         description="도감의 효과를 확인합니다.",
                         usage="[박제 개수]",
                         pass_context=True)
-    @app_commands.describe(collected="박제한 아이템의 개수 (0 ~ 135)")
-    async def collection_power(self, ctx: commands.Context, collected: commands.Range[int, 0, 135]):
-        """일반 도감에 박제된 아이템의 개수에 따라 결정되는 도감 효과를 확인하는 명령어입니다. `[박제 개수]`는 0 또는 1 ~ 135의 자연수여야 하며 필수로 입력해야 합니다.
+    @app_commands.describe(collected="박제한 아이템의 개수 (0 ~ 136)")
+    async def collection_power(self, ctx: commands.Context, collected: commands.Range[int, 0, 136]):
+        """일반 도감에 박제된 아이템의 개수에 따라 결정되는 도감 효과를 확인하는 명령어입니다. `[박제 개수]`는 0 또는 1 ~ 136의 자연수여야 하며 필수로 입력해야 합니다.
         도감 효과는 공식을 유추하여 계산하기 때문에 실제 파머모 효과와 약간의 오차가 있을 수 있습니다. 공식은 다음과 같습니다.
         > <:exp:1037828199679266899> **쓰다듬기 경험치(배)**: 1+(n/60) (소수점은 버림)
         > ⚕️ **아픈 작물 치료 확률(%)**: max((n-60)\*(1/12), 0)
         > 🧫 **효모 획득 확률(%)**: 10+(n/6)
         > 💚 **잃은 체력 비례 회복(%)**: 7+(n\*0.03)
         > 😁 **성장 속도 증가(%)**: 120+(n/12)
-        *\* Special thanks to 네티#4444*"""
+        *\* Special thanks to  *@mms01276 (네티)"""
         embed = collection_power_embed(collected)
         await ctx.reply(embed=embed)
 
@@ -75,7 +75,7 @@ class Calculator(commands.Cog):
     async def collection_power_error(self, ctx, error):
         if isinstance(error, commands.RangeError):
             collected = error.value
-            if len(str(collected)) > 30: # 주어진 수가 30자리수가 넘는 경우
+            if len(str(collected)) > 30: # 주어진 수가 30자리 수가 넘는 경우
                 await ctx.reply("멈춰!")
             else:
                 embed = collection_power_embed(collected)
@@ -96,7 +96,7 @@ class Calculator(commands.Cog):
     # @commands.Cog.listener()
     # async def on_command_error(self, ctx, error):
     #     if isinstance(error, commands.RangeError):
-    #         await ctx.reply("0에서 135 사이의 정수로 입력해주세요.")
+    #         await ctx.reply("0에서 136 사이의 정수로 입력해주세요.")
 
 
 
