@@ -17,8 +17,9 @@ class Guild(commands.Cog):
 
 
 
-    @commands.hybrid_command(aliases=['공동농장', '공팜', 'ㄱㄷㄴㅈ', 'ㄱㄷㄵ', 'ㄱㅍ', 'rhdehdshdwkd', 'rhdvka', 'resw', 'rv'],
-                             description="View the co-farm info of this server.",
+    @commands.hybrid_command(name="공동농장",
+                             aliases=['cofarm', '공팜', 'ㄱㄷㄴㅈ', 'ㄱㄷㄵ', 'ㄱㅍ', 'rhdehdshdwkd', 'rhdvka', 'resw', 'rv'],
+                             description="서버의 공동농장 정보를 확인합니다.",
                              with_app_command=True)
     @commands.guild_only()
     @app_commands.guild_only()
