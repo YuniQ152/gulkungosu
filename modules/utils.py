@@ -75,10 +75,23 @@ def search_db(keyword: str, whitelist: list = None) -> list:
             text = text.replace("ㅟ", "ㅜㅣ")
             text = text.replace("ㅢ", "ㅡㅣ")
             return text
+        def split_chosung(text):
+            text = text.replace("ㄳ", "ㄱㅅ")
+            text = text.replace("ㄵ", "ㄴㅈ")
+            text = text.replace("ㄶ", "ㄴㅎ")
+            text = text.replace("ㄺ", "ㄹㄱ")
+            text = text.replace("ㄻ", "ㄹㅁ")
+            text = text.replace("ㄽ", "ㄹㅅ")
+            text = text.replace("ㄾ", "ㄹㅌ")
+            text = text.replace("ㄿ", "ㄹㅍ")
+            text = text.replace("ㅀ", "ㄹㅎ")
+            text = text.replace("ㅄ", "ㅂㅅ")
+            return text
+
 
         if is_hangul:
             if is_chosung:
-                ratio = match(keyword, chosung(name))
+                ratio = match(split_chosung(keyword), chosung(name))
             else:
                 ratio_type_a = match(keyword, name)
                 ratio_type_b = match(separate_jamo(keyword), separate_jamo(name))
