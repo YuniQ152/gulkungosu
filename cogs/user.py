@@ -22,7 +22,7 @@ def farm_embed(member, farm):
             else:
                 text += f"> <:blank:908031851732533318> **작물 없음** ({i+1})\n"
 
-        embed=discord.Embed(title=f"{member.name}님의 농장",
+        embed=discord.Embed(title=f"{member.display_name}님의 농장",
                         description=f"🔗 사용하기: </farm:882220435960385547>\n🌱 작물 수: `{crop_count}`/{len(farm)}" + (" \❗" if crop_count != len(farm) else ""),
                         color=discord.Color.blurple())
         
@@ -66,7 +66,7 @@ def farm_embed(member, farm):
                        "acceleration": 999,
                        "growth": None} # 수분/비옥도/체력 순으로 정렬할때 오류방지용
 
-    embed=discord.Embed(title=f"{member.name}님의 농장",
+    embed=discord.Embed(title=f"{member.display_name}님의 농장",
                         description=f"🔗 사용하기: </farm:882220435960385547>\n🌱 작물 수: `{crop_count}`/{len(farm)}" + (" \❗" if crop_count != len(farm) else ""),
                         color=discord.Color.blurple())
 
@@ -141,10 +141,10 @@ def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
     inv_item_ids = list(set(inv_item_ids)) # 리스트 중복제거
 
     if inv_weight/inv_max_weight <= 0.5:
-        embed=discord.Embed(title=f"{member.name}님의 인벤토리", description="> 🔗 사용하기: </inventory:882220435847122964>", color=discord.Color.green())
+        embed=discord.Embed(title=f"{member.display_name}님의 인벤토리", description="> 🔗 사용하기: </inventory:882220435847122964>", color=discord.Color.green())
     else:
         color = embed_color(((inv_weight/inv_max_weight)-0.5)*2, reverse=True)
-        embed=discord.Embed(title=f"{member.name}님의 인벤토리", description="> 🔗 사용하기: </inventory:882220435847122964>", color=discord.Color.from_rgb(color[0], color[1], color[2]))
+        embed=discord.Embed(title=f"{member.display_name}님의 인벤토리", description="> 🔗 사용하기: </inventory:882220435847122964>", color=discord.Color.from_rgb(color[0], color[1], color[2]))
 
     items = []
     for i in range(len(inv_item_ids)):
@@ -184,7 +184,7 @@ def health_embed(member, user_info, facilities, equipments):
     max_health = user_info['maxHealth'] # 최대 활동력
     heal_acceleration = user_info['healAcceleration'] # 10분당 회복하는 활동력
 
-    embed=discord.Embed(title=f"💙 {member.name}님의 활동력",
+    embed=discord.Embed(title=f"💙 {member.display_name}님의 활동력",
                         description=f"**{health:.2f}** / **{max_health:.2f}** (10분당 +{heal_acceleration:.2f})",
                         color=discord.Color(0x5dadec))
 
@@ -229,7 +229,7 @@ def health_embed(member, user_info, facilities, equipments):
 
 def stats_embed(user, user_info, target = None, target_info = None):
     if target is None: # 타겟이 없는 경우
-        embed=discord.Embed(title=f"{user.name}님의 능력치", description="", color=discord.Color(0xe67e22))
+        embed=discord.Embed(title=f"{user.display_name}님의 능력치", description="", color=discord.Color(0xe67e22))
         embed.add_field(name="물리 공격력", value=user_info['stats']['pf'])
         embed.add_field(name="마법 공격력", value=user_info['stats']['mf'])
         embed.add_field(name="기동력",      value=user_info['stats']['speed'])
@@ -266,10 +266,10 @@ def stats_embed(user, user_info, target = None, target_info = None):
             embed_target_field_value += f"{stats[i]}: {target_stats[i]}\n"
             
 
-        embed=discord.Embed(title=f"{user.name} vs {target.name} 능력치 비교", description="", color=discord.Color(0xe67e22))
-        embed.add_field(name=user.name, value=embed_user_field_value)
+        embed=discord.Embed(title=f"{user.display_name} vs {target.display_name} 능력치 비교", description="", color=discord.Color(0xe67e22))
+        embed.add_field(name=user.display_name, value=embed_user_field_value)
         embed.add_field(name="vs", value=compare_field_value)
-        embed.add_field(name=target.name, value=embed_target_field_value)
+        embed.add_field(name=target.display_name, value=embed_target_field_value)
         return embed
 
 
@@ -479,7 +479,7 @@ class User(commands.Cog):
             text += f"무기한 광장 입장권 {interminable}개"
 
         embed=discord.Embed(
-            title=f"{ctx.author.name}님의 광장 입장권",
+            title=f"{ctx.author.display_name}님의 광장 입장권",
             description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(expired_list)}",
             color=discord.Color(0xbe1931)
         )
