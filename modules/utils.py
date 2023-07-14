@@ -1,146 +1,122 @@
-from time import sleep
+import discord
 from difflib import SequenceMatcher
 from jamo import h2j, j2hcj
 import re, datetime, math
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import dates
 from modules.database import *
 from modules.get import *
 
-def remove_special_character(s):
-    return re.sub("[^\uAC00-\uD7A3\u3131-\u31630-9a-zA-Z\b]", "", s) # 가-힣 ㄱ-ㅣ 0-9 a-z A-Z 띄어쓰기
 
-def separate_jamo(text):
-    text = j2hcj(h2j(text)) # 한글을 자음과 모음으로 분리함 (파머모 -> ㅍㅏㅁㅓㅁㅗ)
-    text = text.replace("ㅘ", "ㅗㅏ")
-    text = text.replace("ㅙ", "ㅗㅐ")
-    text = text.replace("ㅚ", "ㅗㅣ")
-    text = text.replace("ㅝ", "ㅜㅓ")
-    text = text.replace("ㅞ", "ㅜㅔ")
-    text = text.replace("ㅟ", "ㅜㅣ")
-    text = text.replace("ㅢ", "ㅡㅣ")
-    return text
-
-def separate_jaum(text):
-    text = text.replace("ㄳ", "ㄱㅅ")
-    text = text.replace("ㄵ", "ㄴㅈ")
-    text = text.replace("ㄶ", "ㄴㅎ")
-    text = text.replace("ㄺ", "ㄹㄱ")
-    text = text.replace("ㄻ", "ㄹㅁ")
-    text = text.replace("ㄽ", "ㄹㅅ")
-    text = text.replace("ㄾ", "ㄹㅌ")
-    text = text.replace("ㄿ", "ㄹㅍ")
-    text = text.replace("ㅀ", "ㄹㅎ")
-    text = text.replace("ㅄ", "ㅂㅅ")
-    return text
-
-def chosung(text):
-    text = re.sub("[가-깋]", "ㄱ", text)
-    text = re.sub("[까-낗]", "ㄲ", text)
-    text = re.sub("[나-닣]", "ㄴ", text)
-    text = re.sub("[다-딯]", "ㄷ", text)
-    text = re.sub("[따-띻]", "ㄸ", text)
-    text = re.sub("[라-맇]", "ㄹ", text)
-    text = re.sub("[마-밓]", "ㅁ", text)
-    text = re.sub("[바-빟]", "ㅂ", text)
-    text = re.sub("[빠-삫]", "ㅃ", text)
-    text = re.sub("[사-싷]", "ㅅ", text)
-    text = re.sub("[싸-앃]", "ㅆ", text)
-    text = re.sub("[아-잏]", "ㅇ", text)
-    text = re.sub("[자-짛]", "ㅈ", text)
-    text = re.sub("[짜-찧]", "ㅉ", text)
-    text = re.sub("[차-칳]", "ㅊ", text)
-    text = re.sub("[카-킿]", "ㅋ", text)
-    text = re.sub("[타-팋]", "ㅌ", text)
-    text = re.sub("[파-핗]", "ㅍ", text)
-    text = re.sub("[하-힣]", "ㅎ", text)
-    return text
-
-def compute_match_ratio(input: str, db_dict: dict) -> float:
-    """input과 아이템 이름이 얼마나 일치하는지 계산해서 리턴하는 함수"""
-    id_ratio = 1 if db_dict['id'] == input else 0
-
-    input = remove_special_character(input)
-
-    en = remove_special_character(db_dict["name_en"])
-    en_ratio = SequenceMatcher(None, input, en).ratio()
+def search_db(keyword: str, whitelist: list = None) -> list:
     
-    ko = remove_special_character(db_dict["name_ko"])
-    ko_ratio_byte = SequenceMatcher(None, input, ko).ratio()
-    ko_ratio_jamo = SequenceMatcher(None, separate_jamo(input), separate_jamo(ko)).ratio()
-    ko_proportion = min(50*math.log10(len(separate_jamo(ko))), 100)
-    ko_ratio = ko_ratio_byte*ko_proportion/100 + (ko_ratio_jamo)*(100-ko_proportion)/100
-
-    if db_dict['aliases'] is not None:
-        aliases = remove_special_character(db_dict['aliases'])
-        aliases_ratio_byte = SequenceMatcher(None, input, aliases).ratio()
-        aliases_ratio_jamo = SequenceMatcher(None, separate_jamo(input), separate_jamo(aliases)).ratio()
-        aliases_proportion = min(50*math.log10(len(separate_jamo(aliases))), 100)
-        aliases_ratio = aliases_ratio_byte*aliases_proportion/100 + (aliases_ratio_jamo)*(100-aliases_proportion)/100
-    else:
-        aliases_ratio = 0
-
-    if re.sub("[^ㄱ-ㅎ0-9\b]", "", input) == input:
-        input_chosung = separate_jaum(input)
-        chosung_ratio = SequenceMatcher(None, input_chosung, chosung(ko)).ratio()
-    else:
-        chosung_ratio = 0
-
-    ratio = max(id_ratio, en_ratio, ko_ratio, aliases_ratio, chosung_ratio)
-    return ratio
-
-def search_db(input: str) -> list:
-    items      = fetch_item_info_all()
-    crops      = fetch_crop_info_all()
-    facilities = fetch_facility_info_all()
-    buffs      = fetch_buff_info_all()
-    stats      = fetch_stat_info_all()
-    db_list = []
-    for i in items:
-        i['type'] = 'item'
-        db_list.append(i)
-    for i in crops:
-        i['type'] = 'crop'
-        db_list.append(i)
-    for i in facilities:
-        i['type'] = 'facility'
-        db_list.append(i)
-    for i in buffs:
-        i['type'] = 'buff'
-        db_list.append(i)
-    for i in stats:
-        i['type'] = 'stat'
-        db_list.append(i)
-
-    for i in range(len(db_list)):
-        db_list[i]['ratio'] = compute_match_ratio(input, db_list[i])
-    db_list = sorted(db_list, key=lambda x:-x['ratio'])
-
-    # for i in range(6):
-    #     print(f"{db_list[i]['name_ko']} {db_list[i]['ratio']*100:.2f}%")
-    # print(f"=============")
-
-    return db_list
-
-def add_ratio_in_dict(input: str, full_item_list: list, category = None, except_item: list = []) -> list:
-    items = []
-    for item in full_item_list:
-        if category is None or item['category'] == category:
-            if (item['id'] not in except_item) and (item['name_ko'] not in except_item) and (item['name_en'] not in except_item):
-                item['ratio'] = compute_match_ratio(input, item)
-                items.append(item)
-    items = sorted(items, key=lambda x:-x['ratio']) # ratio 내림차순으로 정렬
-
-    return items
-
-def new_ratios(search_word: str, whitelist: list = None):
+    def remove_special_character(s):
+        return re.sub("[^\uAC00-\uD7A3\u3131-\u31630-9a-zA-Z\b]", "", s)
+    
+    keyword = remove_special_character(keyword)
+    
     if not whitelist:
-        db_list = fetch_name_only()
+        items = fetch_item_all()
+        for i in range(len(items)):
+            items[i]['type'] = 'item'
+
+        crops = fetch_crop_all()
+        for i in range(len(crops)):
+            crops[i]['type'] = 'crop'
+
+        facilities = fetch_facility_all()
+        for i in range(len(facilities)):
+            facilities[i]['type'] = 'facility'
+
+        buffs = fetch_buff_all()
+        for i in range(len(buffs)):
+            buffs[i]['type'] = 'buff'
+
+        stats = fetch_stat_all()
+        for i in range(len(stats)):
+            stats[i]['type'] = 'stat'
+
+        db_list = [*items, *crops, *facilities, *buffs, *stats]
     else:
         db_list = whitelist
-    for item in db_list:
-        pass
+
+    def compute_match_ratio(keyword, name, is_hangul: bool = True, is_chosung: bool = False) -> float:
+        def match(a: str, b: str) -> float:
+            return SequenceMatcher(None, a, b).ratio()
+        def chosung(text: str) -> str:
+            """한글을 초성으로 바꿉니다."""
+            text = re.sub("[가-깋]", "ㄱ", text)
+            text = re.sub("[까-낗]", "ㄲ", text)
+            text = re.sub("[나-닣]", "ㄴ", text)
+            text = re.sub("[다-딯]", "ㄷ", text)
+            text = re.sub("[따-띻]", "ㄸ", text)
+            text = re.sub("[라-맇]", "ㄹ", text)
+            text = re.sub("[마-밓]", "ㅁ", text)
+            text = re.sub("[바-빟]", "ㅂ", text)
+            text = re.sub("[빠-삫]", "ㅃ", text)
+            text = re.sub("[사-싷]", "ㅅ", text)
+            text = re.sub("[싸-앃]", "ㅆ", text)
+            text = re.sub("[아-잏]", "ㅇ", text)
+            text = re.sub("[자-짛]", "ㅈ", text)
+            text = re.sub("[짜-찧]", "ㅉ", text)
+            text = re.sub("[차-칳]", "ㅊ", text)
+            text = re.sub("[카-킿]", "ㅋ", text)
+            text = re.sub("[타-팋]", "ㅌ", text)
+            text = re.sub("[파-핗]", "ㅍ", text)
+            text = re.sub("[하-힣]", "ㅎ", text)
+            return text
+        def separate_jamo(text: str) -> str:
+            text = j2hcj(h2j(text))
+            text = text.replace("ㅘ", "ㅗㅏ")
+            text = text.replace("ㅙ", "ㅗㅐ")
+            text = text.replace("ㅚ", "ㅗㅣ")
+            text = text.replace("ㅝ", "ㅜㅓ")
+            text = text.replace("ㅞ", "ㅜㅔ")
+            text = text.replace("ㅟ", "ㅜㅣ")
+            text = text.replace("ㅢ", "ㅡㅣ")
+            return text
+
+        if is_hangul:
+            if is_chosung:
+                ratio = match(keyword, chosung(name))
+            else:
+                ratio_type_a = match(keyword, name)
+                ratio_type_b = match(separate_jamo(keyword), separate_jamo(name))
+                proportion = min(50 * math.log10(len(separate_jamo(keyword))), 100)
+                ratio = ratio_type_a * proportion / 100 + (ratio_type_b) * (100 - proportion) / 100
+        else:
+            ratio = match(keyword, name)
+
+        return ratio
+
+    def is_chosung(text: str) -> bool:
+        """주어진 한글이 초성이나 숫자로만 이루어져 있는지 확인합니다."""
+        return re.sub("[^ㄱ-ㅎ0-9\b]", "", text) == text
+    
+    if is_chosung(keyword): # 검색어가 초성인지 확인
+        for i in range(len(db_list)):
+            ratio_list = []
+            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name_ko'], True, True))
+            if db_list[i]['aliases'] is not None:
+                ratio_list.append(compute_match_ratio(keyword, db_list[i]['aliases'], False, True))
+            db_list[i]['ratio'] = max(ratio_list)
+        db_list = sorted(db_list, key=lambda x: -x['ratio'])
+    else:
+        for i in range(len(db_list)):
+            ratio_list = []
+            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name_ko'], True))
+            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name_en'], False))
+            if db_list[i]['aliases'] is not None:
+                ratio_list.append(compute_match_ratio(keyword, db_list[i]['aliases'], False))
+            db_list[i]['ratio'] = max(ratio_list)
+        db_list = sorted(db_list, key=lambda x: -x['ratio'])
+
+    print(f"is_chosung? {is_chosung(keyword)}")
+    for i in range(10): 
+        print(db_list[i]['name_ko'], db_list[i]['ratio'])
+    print()
+    return db_list
+
 
 def get_item_quantity_from_inventory(inventory_item_list: list, item_id: str) -> int:
     """여행자 인벤토리에 특정 아이템이 얼마나 있는지 개수를 리턴하는 함수"""
@@ -149,6 +125,7 @@ def get_item_quantity_from_inventory(inventory_item_list: list, item_id: str) ->
         if inventory_item_list[i]["staticId"] == item_id:
             total_quantity += inventory_item_list[i]["quantity"]
     return total_quantity
+
 
 def embed_color(ratio: float, reverse: bool = False) -> tuple:
     """1.0 = Green | 0.5 = Yellow | 0.0 = Red"""
@@ -175,6 +152,7 @@ def embed_color(ratio: float, reverse: bool = False) -> tuple:
             generated_color.append(int(yellow[i]*ratio + red[i]*(1.0-ratio)))
     return tuple(generated_color)
 
+
 def generate_graph(x: list, y: list):
     plt.figure(figsize=(8, 4.5))
     plt.plot(x, y, alpha=1, linewidth=2)
@@ -187,11 +165,13 @@ def generate_graph(x: list, y: list):
     # ax.xaxis.set_minor_formatter(dates.DateFormatter("%H"))
     plt.savefig("trade.png", facecolor="#eeeeee", bbox_inches='tight', pad_inches=0.1, dpi=130)
     
+
 def convert_datetime(unixtime):
     """Convert unixtime to datetime"""
     datetime_str = datetime.datetime.fromtimestamp(unixtime).strftime("%Y-%m-%d %H:%M:%S")
     datetime_obj = datetime.datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
     return datetime_obj
+
 
 def generate_crop_text(crop: dict, topic: str = None):
     crop_id      = crop['staticCropId'] # 작물ID
@@ -202,43 +182,56 @@ def generate_crop_text(crop: dict, topic: str = None):
     acceleration = crop['acceleration'] # 성장 가속
     growth       = crop['growth']       # "dirt" "germination" "maturity" "fruitage"
 
-    if humidity <= 0.1 or fertility <= 0.15 or health <= 0.2:
-        crop_text = "> 🚨"
-    elif humidity <= 0.2 or fertility <= 0.3 or health <= 0.5:
-        crop_text = "> ⚠"
-    else:
-        crop_text = "> "
-    if   growth == "dirt":        crop_text += "🟫"
-    elif growth == "germination": crop_text += "🌱"
-    elif growth == "maturity":    crop_text += "🌿" if crop_id != "pumpkin" else "🥒"
-    elif growth == "fruitage":    crop_text +=f"{fetch_crop_info(crop_id)['icon']}"
+    emoji_map = {
+        "dirt": "🟫",
+        "germination": "🌱",
+        "maturity": "🌿" if crop_id != "pumpkin" else "🥒",
+        "fruitage": f"{fetch_crop_one(crop_id)['icon']}"
+    }
+
+    crop_text = "> "
+    crop_text += emoji_map.get(growth, "")
+
     if 'num' in crop:
-        crop_text += f" **{fetch_crop_info(crop_id)['name_ko']}** ({crop['num']})"
+        crop_text += f" **{fetch_crop_one(crop_id)['name_ko']}** ({crop['num']})"
     else:
-        crop_text += f" **{fetch_crop_info(crop_id)['name_ko']}**"
+        crop_text += f" **{fetch_crop_one(crop_id)['name_ko']}**"
     
-    print_factor_count = 0
-    if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: print_factor_count += 1
-    if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: print_factor_count += 1
-    if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: print_factor_count += 1
+    print_factors = {
+        "fertility": fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2,
+        "humidity": humidity < 0.2 or topic == "humidity" or topic == "all" or status == 1,
+        "health": health < 0.5 or topic == "health" or topic == "all" or status == 2
+    }
+
+    print_factor_count = sum(print_factors.values())
 
     if print_factor_count == 1:
-        if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: crop_text +=f" | 🍔 비옥도: `{int(fertility*100)}%`"
-        if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: crop_text +=f" | 💧 수분: `{int(humidity*100)}%`"
-        if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: crop_text +=f" | 💚 체력: `{int(health*100)}%`"
-        if   status == 1: crop_text += " | 🤒 다갈증"
-        elif status == 2: crop_text += " | 🦠 곰팡이"
-        elif status == 3: crop_text += " | 🪱 지렁이"
+        for factor, print_factor in print_factors.items():
+            if print_factor:
+                crop_text += f" | {factor.capitalize()}: `{int(eval(factor)*100)}%`"
+                if status == 1:
+                    crop_text += " | 🤒 다갈증"
+                elif status == 2:
+                    crop_text += " | 🦠 곰팡이"
+                elif status == 3:
+                    crop_text += " | 🪱 지렁이"
+                break
     else:
-        if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: crop_text +=f" | 🍔 `{int(fertility*100)}%`"
-        if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: crop_text +=f" | 💧 `{int(humidity*100)}%`"
-        if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: crop_text +=f" | 💚 `{int(health*100)}%`"
-        if   status == 1: crop_text += " | 🤒"
-        elif status == 2: crop_text += " | 🦠"
-        elif status == 3: crop_text += " | 🪱"
+        for factor, print_factor in print_factors.items():
+            if print_factor:
+                crop_text += f" | {factor.capitalize()}: `{int(eval(factor)*100)}%`"
+
+        if status == 1:
+            crop_text += " | 🤒"
+        elif status == 2:
+            crop_text += " | 🦠"
+        elif status == 3:
+            crop_text += " | 🪱"
+
     crop_text += "\n"
 
     return crop_text
+
 
 def convert_seconds_to_time_text(in_seconds: int) -> str: # Credit: https://blog.naver.com/wideeyed/221522740612
     t1   = datetime.timedelta(seconds=in_seconds)
@@ -271,7 +264,7 @@ def arrow_number(num: int) -> str:
     text += str(abs(num))
     return text
 
-def tilde_number(data) -> str:
+def tilde_number(data: list or int) -> str:
     """num1 ~ num2 이런식으로 바꿔주는 함수"""
     if isinstance(data, list):
         if len(data) == 2:
@@ -287,6 +280,7 @@ def tilde_number(data) -> str:
 
     else:
         raise TypeError
+
 
 def api_error_message(response_code: int, member: discord.Member = None) -> str:
     if response_code == 401:

@@ -1,7 +1,6 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.errors import Forbidden
 
 class HelpCommand(commands.HelpCommand):
     def __init__(self):
@@ -27,7 +26,7 @@ class HelpCommand(commands.HelpCommand):
                               "이러한 것들이 필요하시다면 [고등어 서버](https://discord.gg/WXjQZ3eJs5)의 포스트에 남겨주세요.",
                         inline=False)
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
-        embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
+        embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
     async def send_cog_help(self, cog):
@@ -48,7 +47,7 @@ class HelpCommand(commands.HelpCommand):
         if group.aliases:
             embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(group.aliases), inline=False)
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
-        embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
+        embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
     async def send_command_help(self, command):
@@ -71,7 +70,7 @@ class HelpCommand(commands.HelpCommand):
             embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(command.aliases), inline=False)
 
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
-        embed.set_footer(text=f"Made by {bot_owner.name}#{bot_owner.discriminator}", icon_url=bot_owner.avatar.url)
+        embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
 
     # async def send_error_message(self, error):
@@ -95,11 +94,10 @@ class Help(commands.Cog):
         bot.help_command = HelpCommand()
         self.bot.remove_command("help")
 
-    @commands.hybrid_command(name="도움",
-                             aliases=['help', 'ㄷㅇ', '?', 'ehdna', 'ed'],
-                             description="명령어 목록과 명령어의 설명을 확인합니다.",
+    @commands.hybrid_command(aliases=['도움', 'ㄷㅇ', '?', 'ehdna', 'ed'],
+                             description="Show the list of commands and descriptions.",
                              usage="(명령어)")
-    @app_commands.describe(command="명령어 이름")
+    @app_commands.describe(command="Command name or Command group name")
     async def help(self, ctx: commands.Context, *, command: str = None):
         """글쿤 고수의 명령어 목록과 명령어에 대한 자세한 설명을 확인하는 명령어입니다. `(명령어)`에는 확인하려는 명령어의 이름이 들어가고, 입력하지 않을 경우 전체 명령어 목록을 나타냅니다.
         전체 명령어 목록은 노란색(📒)으로, 명령어 그룹은 초록색(📗)으로, 개별 명령어는 파란색(📘)으로 나타납니다."""
