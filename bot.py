@@ -42,7 +42,7 @@ class Bot(commands.Bot):
         for extension in self.initial_extensions:
             await self.load_extension(extension)
         await self.tree.sync()
-        # check_loop.start()
+        # health_check.start()
 
     async def on_ready(self):
         print(f"logged in as {bot.user} (ID: {bot.user.id})")
@@ -53,7 +53,7 @@ class Bot(commands.Bot):
 bot = Bot()
 
 @tasks.loop(seconds=600) # 10분
-async def check_loop():
+async def health_check():
     await bot.wait_until_ready()
     message_channel = bot.get_channel(1025073541743386624) # 메시지를 보낼 채널 (개인 채널 ID)
 

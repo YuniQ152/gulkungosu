@@ -67,7 +67,7 @@ class Calculator(commands.Cog):
         > 🧫 **효모 획득 확률(%)**: 10+(n/6)
         > 💚 **잃은 체력 비례 회복(%)**: 7+(n\*0.03)
         > 😁 **성장 속도 증가(%)**: 120+(n/12)
-        *\* Special thanks to 네티#4444*"""
+        *\* Special thanks to  *@mms01276 (네티)"""
         embed = collection_power_embed(collected)
         await ctx.reply(embed=embed)
 
@@ -75,7 +75,7 @@ class Calculator(commands.Cog):
     async def collection_power_error(self, ctx, error):
         if isinstance(error, commands.RangeError):
             collected = error.value
-            if len(str(collected)) > 30: # 주어진 수가 30자리수가 넘는 경우
+            if len(str(collected)) > 30: # 주어진 수가 30자리 수가 넘는 경우
                 await ctx.reply("멈춰!")
             else:
                 embed = collection_power_embed(collected)
