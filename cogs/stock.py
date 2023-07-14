@@ -53,7 +53,7 @@ class Stock(commands.Cog):
             await ctx.reply(content="", embed=embed)
     @graph.autocomplete("crop")
     async def graph_autocomplete(self, interaction: Interaction, current: str,) -> Choice[str]:
-        choice = ['감자', '고구마', '마늘', '밀', '바질', '벼', '사탕수수', '솜', '애호박', '양파', '옥수수', '콩', '토마토', '호박']
+        choice = ['감자', '고구마', '마늘', '밀', '바질', '벼', '사과', '사탕수수', '솜', '애호박', '양파', '옥수수', '콩', '토마토', '포도', '호박']
         return [Choice(name=crop, value=crop) for crop in choice if current.lower() in crop.lower()]
 
 

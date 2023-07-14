@@ -75,10 +75,23 @@ def search_db(keyword: str, whitelist: list = None) -> list:
             text = text.replace("ㅟ", "ㅜㅣ")
             text = text.replace("ㅢ", "ㅡㅣ")
             return text
+        def split_chosung(text):
+            text = text.replace("ㄳ", "ㄱㅅ")
+            text = text.replace("ㄵ", "ㄴㅈ")
+            text = text.replace("ㄶ", "ㄴㅎ")
+            text = text.replace("ㄺ", "ㄹㄱ")
+            text = text.replace("ㄻ", "ㄹㅁ")
+            text = text.replace("ㄽ", "ㄹㅅ")
+            text = text.replace("ㄾ", "ㄹㅌ")
+            text = text.replace("ㄿ", "ㄹㅍ")
+            text = text.replace("ㅀ", "ㄹㅎ")
+            text = text.replace("ㅄ", "ㅂㅅ")
+            return text
+
 
         if is_hangul:
             if is_chosung:
-                ratio = match(keyword, chosung(name))
+                ratio = match(split_chosung(keyword), chosung(name))
             else:
                 ratio_type_a = match(keyword, name)
                 ratio_type_b = match(separate_jamo(keyword), separate_jamo(name))
@@ -182,52 +195,40 @@ def generate_crop_text(crop: dict, topic: str = None):
     acceleration = crop['acceleration'] # 성장 가속
     growth       = crop['growth']       # "dirt" "germination" "maturity" "fruitage"
 
-    emoji_map = {
-        "dirt": "🟫",
-        "germination": "🌱",
-        "maturity": "🌿" if crop_id != "pumpkin" else "🥒",
-        "fruitage": f"{fetch_crop_one(crop_id)['icon']}"
-    }
-
-    crop_text = "> "
-    crop_text += emoji_map.get(growth, "")
-
+    if humidity <= 0.1 or fertility <= 0.15 or health <= 0.2:
+        crop_text = "> 🚨"
+    elif humidity <= 0.2 or fertility <= 0.3 or health <= 0.5:
+        crop_text = "> ⚠"
+    else:
+        crop_text = "> "
+    if   growth == "dirt":        crop_text += "🟫"
+    elif growth == "germination": crop_text += "🌱"
+    elif growth == "maturity":    crop_text += "🌿" if crop_id != "pumpkin" else "🥒"
+    elif growth == "fruitage":    crop_text +=f"{fetch_crop_one(crop_id)['icon']}"
     if 'num' in crop:
         crop_text += f" **{fetch_crop_one(crop_id)['name_ko']}** ({crop['num']})"
     else:
         crop_text += f" **{fetch_crop_one(crop_id)['name_ko']}**"
     
-    print_factors = {
-        "fertility": fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2,
-        "humidity": humidity < 0.2 or topic == "humidity" or topic == "all" or status == 1,
-        "health": health < 0.5 or topic == "health" or topic == "all" or status == 2
-    }
-
-    print_factor_count = sum(print_factors.values())
+    print_factor_count = 0
+    if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: print_factor_count += 1
+    if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: print_factor_count += 1
+    if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: print_factor_count += 1
 
     if print_factor_count == 1:
-        for factor, print_factor in print_factors.items():
-            if print_factor:
-                crop_text += f" | {factor.capitalize()}: `{int(eval(factor)*100)}%`"
-                if status == 1:
-                    crop_text += " | 🤒 다갈증"
-                elif status == 2:
-                    crop_text += " | 🦠 곰팡이"
-                elif status == 3:
-                    crop_text += " | 🪱 지렁이"
-                break
+        if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: crop_text +=f" | 🍔 비옥도: `{int(fertility*100)}%`"
+        if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: crop_text +=f" | 💧 수분: `{int(humidity*100)}%`"
+        if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: crop_text +=f" | 💚 체력: `{int(health*100)}%`"
+        if   status == 1: crop_text += " | 🤒 다갈증"
+        elif status == 2: crop_text += " | 🦠 곰팡이"
+        elif status == 3: crop_text += " | 🪱 지렁이"
     else:
-        for factor, print_factor in print_factors.items():
-            if print_factor:
-                crop_text += f" | {factor.capitalize()}: `{int(eval(factor)*100)}%`"
-
-        if status == 1:
-            crop_text += " | 🤒"
-        elif status == 2:
-            crop_text += " | 🦠"
-        elif status == 3:
-            crop_text += " | 🪱"
-
+        if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: crop_text +=f" | 🍔 `{int(fertility*100)}%`"
+        if humidity  < 0.2 or topic == "humidity"  or topic == "all" or status == 1: crop_text +=f" | 💧 `{int(humidity*100)}%`"
+        if health    < 0.5 or topic == "health"    or topic == "all" or status == 2: crop_text +=f" | 💚 `{int(health*100)}%`"
+        if   status == 1: crop_text += " | 🤒"
+        elif status == 2: crop_text += " | 🦠"
+        elif status == 3: crop_text += " | 🪱"
     crop_text += "\n"
 
     return crop_text
@@ -280,6 +281,17 @@ def tilde_number(data: list or int) -> str:
 
     else:
         raise TypeError
+    
+def number_to_alphabet(num: int, capital: bool = True) -> str:
+    """숫자를 대응되는 알파뱃으로 바꾸는 함수"""
+    if capital:
+        alphabet_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    else:
+        alphabet_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+    if num >= 0 and num <= 25:
+        return alphabet_list[num-1]
+    else:
+        return None
 
 
 def api_error_message(response_code: int, member: discord.Member = None) -> str:

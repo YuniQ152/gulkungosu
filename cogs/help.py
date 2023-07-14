@@ -10,7 +10,7 @@ class HelpCommand(commands.HelpCommand):
         ctx = self.context
         embed = discord.Embed(title="📒 안녕하세요, 글쿤 고수입니다!",
                               description=f"**__글쿤 고수__**는 **<:blue_haired_moremi:1037828198261600337>파란 머리 모레미**의 서드파티 봇이에요.\n"
-                                           "이곳에 나열된 모든 명령어는 명령어 앞에 `.`을 붙여 채팅으로 입력하거나, 슬래시 커맨드(빗금 명령어)로 사용할 수 있어요.\n"
+                                           "이곳에 나열된 모든 명령어는 명령어 앞에 `.`을 붙여 채팅으로 입력하거나, 빗금 명령어(빗금 명령어)로 사용할 수 있어요.\n"
                                            "명령어를 채팅으로 사용하는 경우에는 초성으로도 사용할 수 있어요.",
                               color=discord.Color(0xffcc4d))
         command_list = []
@@ -45,7 +45,7 @@ class HelpCommand(commands.HelpCommand):
         if command_list:
             embed.add_field(name="🤖 하위 명령어 목록", value="\n".join(command_list), inline=False)
         if group.aliases:
-            embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(group.aliases), inline=False)
+            embed.add_field(name="텍스트 명령어 동의어", value=", ".join(group.aliases), inline=False)
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
         embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
         await ctx.reply(embed=embed)
@@ -67,7 +67,7 @@ class HelpCommand(commands.HelpCommand):
             detail += "\n*(이 명령어는 개인 메시지에서 사용할 수 없습니다.)*"
         embed.add_field(name="세부 정보", value=detail, inline=False)
         if command.aliases:
-            embed.add_field(name="텍스트 커맨드 동의어", value=", ".join(command.aliases), inline=False)
+            embed.add_field(name="텍스트 명령어 동의어", value=", ".join(command.aliases), inline=False)
 
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
         embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)
