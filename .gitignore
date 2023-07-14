@@ -1,0 +1,6 @@
+.env
+db.sqlite3
+trade.png
+emoji/
+*.pyc
+__pycache__/

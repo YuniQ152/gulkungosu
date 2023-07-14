@@ -94,10 +94,11 @@ class Help(commands.Cog):
         bot.help_command = HelpCommand()
         self.bot.remove_command("help")
 
-    @commands.hybrid_command(aliases=['도움', 'ㄷㅇ', '?', 'ehdna', 'ed'],
-                             description="Show the list of commands and descriptions.",
+    @commands.hybrid_command(name="도움",
+                             aliases=['help', 'ㄷㅇ', '?', 'ehdna', 'ed'],
+                             description="명령어 목록과 명령어의 설명을 확인합니다.",
                              usage="(명령어)")
-    @app_commands.describe(command="Command name or Command group name")
+    @app_commands.describe(command="명령어 이름")
     async def help(self, ctx: commands.Context, *, command: str = None):
         """글쿤 고수의 명령어 목록과 명령어에 대한 자세한 설명을 확인하는 명령어입니다. `(명령어)`에는 확인하려는 명령어의 이름이 들어가고, 입력하지 않을 경우 전체 명령어 목록을 나타냅니다.
         전체 명령어 목록은 노란색(📒)으로, 명령어 그룹은 초록색(📗)으로, 개별 명령어는 파란색(📘)으로 나타납니다."""

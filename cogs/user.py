@@ -284,12 +284,13 @@ class User(commands.Cog):
 
 
 
-    @commands.hybrid_command(aliases=['농장', '팜', 'ㄴㅈ', 'ㄵ', 'ㅍ', 'shdwkd', 'vka', 'sw', 'v'],
-                             description="View farm info.",
+    @commands.hybrid_command(name="농장",
+                             aliases=['farm', '팜', 'ㄴㅈ', 'ㄵ', 'ㅍ', 'shdwkd', 'vka', 'sw', 'v'],
+                             description="농장의 정보를 확인합니다.",
                              usage="(사용자)")
     @commands.guild_only()
     @app_commands.guild_only()
-    @app_commands.describe(member="User to get farm of.")
+    @app_commands.describe(member="농장을 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def farm(self, ctx: commands.Context, member: Optional[discord.Member]):
         """사용자의 농장 정보를 확인하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
         개간된 밭이 10개 이하라면 모든 작물을 보여줍니다. 개간된 밭이 10개 이상이라면 가장 수분이 낮은 작물과 가장 비옥도가 낮은 작물을 5개씩 보여줍니다. 체력이 감소된 작물이 있다면 그 작물도 보여줍니다. 만약에 특별히 위독한 작물이 있다면 해당 작물을 추가로 보여줍니다."""
@@ -314,12 +315,13 @@ class User(commands.Cog):
 
 
 
-    @commands.hybrid_command(aliases=['인벤토리', 'inv', '인벤', '인', 'ㅇㅂㅌㄹ', 'ㅇㅂ', 'ㅇ', 'dlsqpsxhfl', 'dlsqps', 'dls', 'dqxf', 'dq', 'd'],
-                             description="View inventory summary of user.",
+    @commands.hybrid_command(name="인벤토리",
+                             aliases=['inventory', 'inv', '인벤', '인', 'ㅇㅂㅌㄹ', 'ㅇㅂ', 'ㅇ', 'dlsqpsxhfl', 'dlsqps', 'dls', 'dqxf', 'dq', 'd'],
+                             description="인벤토리의 아이템이 얼마나 무게를 차지하는지 확인합니다.",
                              usage="(사용자)")
     @commands.guild_only()
     @app_commands.guild_only()
-    @app_commands.describe(member="User to get inventory of.")
+    @app_commands.describe(member="인벤토리를 조회할 대상. 입력하지 않을 경우 본인을 조회합니다.")
     async def inventory(self, ctx: commands.Context, member: Optional[discord.Member]):
         """사용자의 인벤토리를 조회하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
         인벤토리에 사용하고 있는 무게와 남아있는 무게를 보여주고, 어떤 아이템이 무게를 가장 많이 차지하는지 최대 15개까지 보여줍니다. 색상은 차지하는 무게가 50% ~ 100%일 때 무게에 따라 초록색, 노란색, 빨간색으로 나타며 그 이하일 경우 초록색, 그 이상일 경우 빨간색으로 나타납니다."""
