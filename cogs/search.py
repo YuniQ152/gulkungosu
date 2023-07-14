@@ -195,9 +195,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         embed.add_field(name="시설물 짓기", value=f"<:exp:1037828199679266899> 레벨 {result['level']}부터 지을 수 있어요.", inline=False)
 
         for i in range(len(result['build_costs'])):
-            field_name = ""
-            for coproduct in range(i+1): field_name += "⭐"
-            field_name += " 단계"
+            field_name = f"{'⭐' * (i+1)} 단계"
 
             build_costs = result['build_costs'][i]
             build_costs = list(build_costs.items())

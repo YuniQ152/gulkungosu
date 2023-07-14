@@ -135,7 +135,6 @@ def farm_embed(member, farm):
     return embed
 
 
-
 def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
     inv_item_ids = list(i['staticId'] for i in inv_list) # ['1st-anniversary-cake", 1st-anniversary-medal", ...]
     inv_item_ids = list(set(inv_item_ids)) # 리스트 중복제거
@@ -176,7 +175,6 @@ def inventory_embed(member, inv_weight, inv_max_weight, inv_list):
     embed.set_footer(text=footer_text)
 
     return embed
-
 
 
 def health_embed(member, user_info, facilities, equipments):
@@ -226,7 +224,6 @@ def health_embed(member, user_info, facilities, equipments):
     return embed
 
 
-
 def stats_embed(user, user_info, target = None, target_info = None):
     if target is None: # 타겟이 없는 경우
         embed=discord.Embed(title=f"{user.display_name}님의 능력치", description="", color=discord.Color(0xe67e22))
@@ -273,6 +270,73 @@ def stats_embed(user, user_info, target = None, target_info = None):
         return embed
 
 
+def agora_embed(member: discord.Member, inv_list: list) -> discord.Embed:
+    expired_list = []
+
+    for item in inv_list:
+        if item['staticId'] == "ticket-agora":
+            if "expiredAt" in item:
+                expired_list.append(int(item['expiredAt']/1000))
+            else:
+                expired_list.append(9999999999)
+
+    text = ""
+    expired_list.sort()
+    for ticket in expired_list:
+        if ticket == 9999999999:
+            break
+        text += f"<t:{ticket}:f> (<t:{ticket}:R>)\n"
+    interminable = expired_list.count(9999999999) # 무기한 입장권 개수
+    if interminable != 0:
+        text += f"무기한 광장 입장권 {interminable}개"
+
+    embed=discord.Embed(
+        title=f"{member.display_name}님의 광장 입장권",
+        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(expired_list)}",
+        color=discord.Color(0xbe1931)
+    )
+    embed.add_field(name="만료일", value=text)
+
+    return embed
+
+
+def land_embed(member: discord.Member, size: list, facilities: list) -> discord.Embed:
+    def facility_status(status):
+        """
+        스탯을 이모지로 반환합니다.
+        fine -> ✅
+        working -> ⚡
+        underConstruction -> 🚧
+        broken -> ❎
+        """
+        if status == "fine":
+            return "✅"
+        elif status == "working":
+            return "⚡"
+        elif status == "underConstruction":
+            return "🚧"
+        elif status == "broken":
+            return "❎"
+        else:
+            raise Exception("알 수 없는 상태")
+        
+    embed=discord.Embed(title=f"🗺️ {member.display_name}님의 영토",
+                        description=f"> 📐 크기: {size[0]}×{size[1]}",
+                        color=discord.Color(0x5dadec))
+    
+    facilities_text = ""
+
+    facilities = sorted(facilities, key=lambda x: x['health'])
+    
+    for facility in facilities[:15]:
+        facility_info = fetch_facility_one(facility['staticId'])
+        facilities_text += f"> **[{number_to_alphabet(facility['position'][0] + 1, True)}{facility['position'][1] + 1}]** {facility_info['icon']} **{facility_info['name_ko']}** {'⭐' * facility['level']} | {facility['health']*100:.2f}% | {facility_status(facility['status'])}\n"
+
+    embed.add_field(name="시설물 목록 (최대 15개)", value=facilities_text, inline=False)
+    embed.set_footer(text="시설물 위치는 왼쪽 위 모서리를 기준으로 하기 때문에 파머모에서 나타나는 것과 다를 수 있습니다.")
+
+    return embed
+
 
 class User(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -281,6 +345,8 @@ class User(commands.Cog):
         self.bot.tree.add_command(app_commands.ContextMenu(name="인벤토리", callback=self.inventory_contextmenu))
         self.bot.tree.add_command(app_commands.ContextMenu(name="활동력", callback=self.health_contextmenu))
         self.bot.tree.add_command(app_commands.ContextMenu(name="능력치", callback=self.stats_contextmenu))
+        # self.bot.tree.add_command(app_commands.ContextMenu(name="광장 입장권", callback=self.agora_contextmenu))
+        self.bot.tree.add_command(app_commands.ContextMenu(name="영토", callback=self.land_contextmenu))
 
 
 
@@ -294,10 +360,11 @@ class User(commands.Cog):
     async def farm(self, ctx: commands.Context, *, member: discord.Member = None):
         """사용자의 농장 정보를 확인하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
         개간된 밭이 10개 이하라면 모든 작물을 보여줍니다. 개간된 밭이 10개 이상이라면 가장 수분이 낮은 작물과 가장 비옥도가 낮은 작물을 5개씩 보여줍니다. 체력이 감소된 작물이 있다면 그 작물도 보여줍니다. 만약에 특별히 위독한 작물이 있다면 해당 작물을 추가로 보여줍니다."""
+
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
 
-        response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
+        response_code, user_id = get_user_id(ctx.guild.id, member.id)
         if response_code != 200: await ctx.reply(api_error_message(response_code, member), ephemeral=True); return
         response_code, farm = get_user_farm(user_id)
         if response_code != 200: await ctx.reply(api_error_message(response_code, member), ephemeral=True); return
@@ -416,13 +483,13 @@ class User(commands.Cog):
 
         await ctx.reply(embed=embed, ephemeral=True)
     async def stats_contextmenu(self, interaction: Interaction, target: discord.Member):
-        response_code, id = get_user_id(809809541385682964, interaction.user.id)
+        response_code, id = get_user_id(interaction.guild.id, interaction.user.id)
         if response_code != 200: await interaction.response.send_message(api_error_message(response_code, interaction.user), ephemeral=True); return
         response_code, user_info = get_user_info(id)
         if response_code != 200: await interaction.response.send_message(api_error_message(response_code, interaction.user), ephemeral=True); return
 
         if interaction.user != target: # 자기 자신의 능력치를 조회하지 않는 경우 (타겟이 있는 경우)
-            response_code, id = get_user_id(809809541385682964, target.id)
+            response_code, id = get_user_id(interaction.guild.id, target.id)
             if response_code != 200: await interaction.response.send_message(api_error_message(response_code, target), ephemeral=True); return
             response_code, target_info = get_user_info(id)
             if response_code != 200: await interaction.response.send_message(api_error_message(response_code, target), ephemeral=True); return
@@ -448,69 +515,54 @@ class User(commands.Cog):
 
         if member is None: # 대상이 주어지지 않은 경우 본인
             member = ctx.message.author
-        response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
-        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
+        response_code, user_id = get_user_id(ctx.guild.id, member.id)
+        if response_code != 200: await ctx.reply(api_error_message(response_code, member), ephemeral=True); return
         response_code, inv_weight, inv_max_weight, inv_list = get_user_inventory(user_id)
-        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
+        if response_code != 200: await ctx.reply(api_error_message(response_code, member), ephemeral=True); return
 
-        expired_list = []
-
-        for item in inv_list:
-            if item['staticId'] == "ticket-agora":
-                if "expiredAt" in item:
-                    expired_list.append(int(item['expiredAt']/1000))
-                else:
-                    expired_list.append(9999999999)
-
-        text = ""
-        expired_list.sort()
-        for ticket in expired_list:
-            if ticket == 9999999999:
-                break
-            text += f"<t:{ticket}:f> (<t:{ticket}:R>)\n"
-        interminable = expired_list.count(9999999999) # 무기한 입장권 개수
-        if interminable != 0:
-            text += f"무기한 광장 입장권 {interminable}개"
-
-        embed=discord.Embed(
-            title=f"{ctx.author.display_name}님의 광장 입장권",
-            description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(expired_list)}",
-            color=discord.Color(0xbe1931)
-        )
-        embed.add_field(name="만료일", value=text)
+        embed = agora_embed(member, inv_list)
 
         await ctx.reply(embed=embed, ephemeral=True)
+    # async def agora_contextmenu(self, interaction: Interaction, member: discord.Member):
+    #     response_code, user_id = get_user_id(interaction.guild.id, member.id)
+    #     if response_code != 200: await interaction.response.send_message(api_error_message(response_code, member), ephemeral=True); return
+    #     response_code, inv_weight, inv_max_weight, inv_list = get_user_inventory(user_id)
+    #     if response_code != 200: await interaction.response.send_message(api_error_message(response_code, member), ephemeral=True); return
+
+    #     embed = agora_embed(member, inv_list)
+    #     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 
-    # @commands.hybrid_command(name="영토",
-    #                          aliases=['land', '땅', 'ㅇㅌ', 'ㄸ', 'ㄷㄷ', 'Ekd', 'dx', 'E', 'ee'],
-    #                          description="보유한 시설물을 보여줍니다.",
-    #                          usage="(사용자)")
-    # @commands.guild_only()
-    # @app_commands.guild_only()
-    # @app_commands.describe(member="보유한 시설물을 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
-    # async def stats(self, ctx: commands.Context, *, member: discord.Member = None):
-    #     """
-    #     보유한 시설물을 확인하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
-    #     시설물을 내구도 오름차순으로 정렬하고 망가진 시설물의 경우 특별히 강조 표시합니다.
-    #     """
-    #     if member is None:
-    #         member = ctx.message.author
-    #     response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
-    #     if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
-    #     response_code, size, facilities = get_user_land(user_id)
-    #     if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.author), ephemeral=True); return
-        
-    #     size_text = f"> 📐 영토 크기: {size[0]}×{size[1]}"
-    #     facilities_text = ""
+    @commands.hybrid_command(name="영토",
+                             aliases=['land', '땅', 'ㅇㅌ', 'ㄸ', 'ㄷㄷ', 'Ekd', 'dx', 'E', 'ee'],
+                             description="보유한 시설물을 보여줍니다.",
+                             usage="(사용자)")
+    @commands.guild_only()
+    @app_commands.guild_only()
+    @app_commands.describe(member="보유한 시설물을 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
+    async def land(self, ctx: commands.Context, *, member: discord.Member = None):
+        """
+        보유한 시설물을 확인하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다.
+        시설물을 내구도 오름차순으로 정렬하고 망가진 시설물의 경우 특별히 강조 표시합니다.
+        """
+        if member is None:
+            member = ctx.message.author
+        response_code, user_id = get_user_id(ctx.guild.id, member.id)
+        if response_code != 200: await ctx.reply(api_error_message(response_code, member), ephemeral=True); return
+        response_code, size, facilities = get_user_land(user_id)
+        if response_code != 200: await ctx.reply(api_error_message(response_code, member), ephemeral=True); return
 
-    #     facilities = sorted(facilities, key=lambda x: x['health'])
-        
-    #     for i in range(5):
-    #         facilities_text += f"{facilities[i]['staticId']} {facilities[i]['level']} {facilities[i]['health']*100}% {facilities[i]['position']}\n"
+        embed = land_embed(member, size, facilities)
+        await ctx.reply(embed=embed, ephemeral=True)
+    async def land_contextmenu(self, interaction: Interaction, member: discord.Member):
+        response_code, user_id = get_user_id(interaction.guild.id, member.id)
+        if response_code != 200: await interaction.response.send_message(api_error_message(response_code, member), ephemeral=True); return
+        response_code, size, facilities = get_user_land(user_id)
+        if response_code != 200: await interaction.response.send_message(api_error_message(response_code, member), ephemeral=True); return
 
-    #     await ctx.reply(f"{size_text}\n{facilities_text}")
+        embed = land_embed(member, size, facilities)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 

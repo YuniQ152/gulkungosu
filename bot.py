@@ -24,7 +24,7 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "새로운 기능 추가"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨/영토 명령어 추가!"),
             intents = intents
         )
 
