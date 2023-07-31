@@ -458,7 +458,7 @@ class User(commands.Cog):
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="능력치 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.", target="능력치 정보를 비교할 대상.")
-    async def stats(self, ctx: commands.Context, *, member: discord.Member = None, target: discord.Member = None):
+    async def stats(self, ctx: commands.Context, member: discord.Member = None, *, target: discord.Member = None):
         """능력치 정보를 확인하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다. `(비교 대상)`은 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 비교 대상은 없습니다.
         `(비교 대상)`이 없을 때: `(사용자)`의 능력치를 보여줍니다.
         `(비교 대상)`이 있을 때: `(사용자)`와 `(비교 대상)`의 능력치를 보여주고 각 능력치별로 어느 쪽의 능력치가 얼마나 높은지 보여줍니다.
