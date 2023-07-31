@@ -321,7 +321,7 @@ def land_embed(member: discord.Member, size: list, facilities: list) -> discord.
             raise Exception("알 수 없는 상태")
         
     embed=discord.Embed(title=f"🗺️ {member.display_name}님의 영토",
-                        description=f"> 📐 크기: {size[0]}×{size[1]}",
+                        description=f"> 🔗 사용하기: </land:882220435842949170>\n> 📐 크기: {size[0]}×{size[1]}",
                         color=discord.Color(0x5dadec))
     
     facilities_text = ""
