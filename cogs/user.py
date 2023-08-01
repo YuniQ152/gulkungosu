@@ -307,7 +307,7 @@ def land_embed(member: discord.Member, size: list, facilities: list) -> discord.
         fine -> ✅
         working -> ⚡
         underConstruction -> 🚧
-        broken -> ❎
+        broken -> ❌
         """
         if status == "fine":
             return "✅"
@@ -316,7 +316,7 @@ def land_embed(member: discord.Member, size: list, facilities: list) -> discord.
         elif status == "underConstruction":
             return "🚧"
         elif status == "broken":
-            return "❎"
+            return "❌"
         else:
             raise Exception("알 수 없는 상태")
         
@@ -505,7 +505,7 @@ class User(commands.Cog):
     @commands.hybrid_command(name="광장입장권",
                              aliases=['agora_ticket', 'agoraticket', 'ㄱㅈㅇㅈㄱ', '광장', 'ㄱㅈ', '입장권', 'ㅇㅈㄱ', 'rwdwr', 'rhkdwkd', 'rw', 'dlqwkdrnjs', 'dwr'],
                              description="광장 입장권의 개수와 만료일 확인합니다.",
-                             with_app_command=True)
+                             usage="(사용자)")
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="광장 입장권 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
@@ -568,3 +568,4 @@ class User(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(User(bot))
+    
