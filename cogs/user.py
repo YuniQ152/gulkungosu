@@ -271,28 +271,28 @@ def stats_embed(user, user_info, target = None, target_info = None):
 
 
 def agora_embed(member: discord.Member, inv_list: list) -> discord.Embed:
-    expired_list = []
+    ticket_list = []
 
     for item in inv_list:
         if item['staticId'] == "ticket-agora":
-            if "expiredAt" in item:
-                expired_list.append(int(item['expiredAt']/1000))
+            ticket = item
+            if "expiredAt" in ticket:
+                ticket['expiredAt'] = int(ticket['expiredAt'] / 1000)
             else:
-                expired_list.append(9999999999)
+                ticket['expiredAt'] = 999999999999
+            ticket_list.append(ticket)
 
     text = ""
-    expired_list.sort()
-    for ticket in expired_list:
-        if ticket == 9999999999:
-            break
-        text += f"<t:{ticket}:f> (<t:{ticket}:R>)\n"
-    interminable = expired_list.count(9999999999) # 무기한 입장권 개수
-    if interminable != 0:
-        text += f"무기한 광장 입장권 {interminable}개"
+    ticket_list = sorted(ticket_list, key=lambda x: x['expiredAt'])
+    for ticket in ticket_list:
+        if ticket['expiredAt'] != 999999999999:
+            text += f"<t:{ticket['expiredAt']}:f> (<t:{ticket['expiredAt']}:R>) × {ticket['quantity']}개\n"
+        else:
+            text += f"무기한 × {ticket['quantity']}개"
 
     embed=discord.Embed(
         title=f"{member.display_name}님의 광장 입장권",
-        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(expired_list)}",
+        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(ticket_list)}",
         color=discord.Color(0xbe1931)
     )
     embed.add_field(name="만료일", value=text)
