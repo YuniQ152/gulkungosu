@@ -56,6 +56,10 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
             embed.add_field(name="개당 무게", value=f"`{result['weight']}`", inline=True)
 
         if result['options'] is not None:
+            if "expiredAt" in result['options']:
+                expired_at = result['options']['expiredAt']
+                embed.add_field(name="⌛ 만료일", value=f"<t:{int(expired_at/1000)}:D>", inline=True)
+
             option_list = [['health', '💙 활동력 회복', ''],
                            ['divisibleHealth', '💙 활동력 회복', ' (나눠쓰기 가능)']]
             for key, name, suffix in option_list:
@@ -91,12 +95,11 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                         embed.add_field(name=name, value=f"`{arrow_number(value)}`", inline=True)
                     elif type(value) is list:
                         embed.add_field(name=name, value=f"`{arrow_number(value[1])}` ~ `{arrow_number(value[2])}`", inline=True)
+
             if "lifespan" in result['options']:
                 lifespan = result['options']['lifespan']
                 embed.add_field(name="🧓 기대 수명", value=f"{convert_seconds_to_time_text(int(lifespan/1000))}", inline=True)
-            if "expiredAt" in result['options']:
-                expired_at = result['options']['expiredAt']
-                embed.add_field(name="⌛ 만료일", value=f"<t:{int(expired_at/1000)}:D>", inline=True)
+
             if "buffByEating" in result['options']:
                 buff_by_eating = result['options']['buffByEating']
                 buff_id = list(buff_by_eating.keys())
@@ -104,6 +107,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                 for i in range(len(buff_id)):
                     buff = fetch_buff_one(buff_id[i])
                     embed.add_field(name=f"먹어서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
+
             if "buffByUsing" in result['options']:
                 buff_by_using = result['options']['buffByUsing']
                 buff_id = list(buff_by_using.keys())
@@ -111,6 +115,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                 for i in range(len(buff_id)):
                     buff = fetch_buff_one(buff_id[i])
                     embed.add_field(name=f"써서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
+                    
             if "coupon" in result['options']:
                 coupon = result['options']['coupon']
                 if coupon != "variable": # coupon이 동적이 아닌경우
