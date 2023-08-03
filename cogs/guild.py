@@ -43,7 +43,7 @@ class Guild(commands.Cog):
             return
 
         response_code, user_id = get_user_id(ctx.guild.id, ctx.author.id)
-        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.message.author.id), ephemeral=True); return
+        if response_code != 200: await ctx.reply(api_error_message(response_code, ctx.message.author), ephemeral=True); return
 
         embeds = []
         for cofarm_id in cofarm_id_list:

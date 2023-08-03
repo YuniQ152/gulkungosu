@@ -271,28 +271,28 @@ def stats_embed(user, user_info, target = None, target_info = None):
 
 
 def agora_embed(member: discord.Member, inv_list: list) -> discord.Embed:
-    expired_list = []
+    ticket_list = []
 
     for item in inv_list:
         if item['staticId'] == "ticket-agora":
-            if "expiredAt" in item:
-                expired_list.append(int(item['expiredAt']/1000))
+            ticket = item
+            if "expiredAt" in ticket:
+                ticket['expiredAt'] = int(ticket['expiredAt'] / 1000)
             else:
-                expired_list.append(9999999999)
+                ticket['expiredAt'] = 999999999999
+            ticket_list.append(ticket)
 
     text = ""
-    expired_list.sort()
-    for ticket in expired_list:
-        if ticket == 9999999999:
-            break
-        text += f"<t:{ticket}:f> (<t:{ticket}:R>)\n"
-    interminable = expired_list.count(9999999999) # 무기한 입장권 개수
-    if interminable != 0:
-        text += f"무기한 광장 입장권 {interminable}개"
+    ticket_list = sorted(ticket_list, key=lambda x: x['expiredAt'])
+    for ticket in ticket_list:
+        if ticket['expiredAt'] != 999999999999:
+            text += f"<t:{ticket['expiredAt']}:f> (<t:{ticket['expiredAt']}:R>) × {ticket['quantity']}개\n"
+        else:
+            text += f"무기한 × {ticket['quantity']}개"
 
     embed=discord.Embed(
         title=f"{member.display_name}님의 광장 입장권",
-        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(expired_list)}",
+        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(ticket_list)}",
         color=discord.Color(0xbe1931)
     )
     embed.add_field(name="만료일", value=text)
@@ -307,7 +307,7 @@ def land_embed(member: discord.Member, size: list, facilities: list) -> discord.
         fine -> ✅
         working -> ⚡
         underConstruction -> 🚧
-        broken -> ❎
+        broken -> ❌
         """
         if status == "fine":
             return "✅"
@@ -316,12 +316,12 @@ def land_embed(member: discord.Member, size: list, facilities: list) -> discord.
         elif status == "underConstruction":
             return "🚧"
         elif status == "broken":
-            return "❎"
+            return "❌"
         else:
             raise Exception("알 수 없는 상태")
         
     embed=discord.Embed(title=f"🗺️ {member.display_name}님의 영토",
-                        description=f"> 📐 크기: {size[0]}×{size[1]}",
+                        description=f"> 🔗 사용하기: </land:882220435842949170>\n> 📐 크기: {size[0]}×{size[1]}",
                         color=discord.Color(0x5dadec))
     
     facilities_text = ""
@@ -458,7 +458,7 @@ class User(commands.Cog):
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="능력치 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.", target="능력치 정보를 비교할 대상.")
-    async def stats(self, ctx: commands.Context, *, member: discord.Member = None, target: discord.Member = None):
+    async def stats(self, ctx: commands.Context, member: discord.Member = None, *, target: discord.Member = None):
         """능력치 정보를 확인하는 명령어입니다. `(사용자)`는 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 자기 자신을 선택한 것으로 간주합니다. `(비교 대상)`은 Discord 서버에 있는 사용자로, 멤버 ID, 멤버 멘션, 사용자명#태그, 사용자명 또는 서버 내 별명이여야 하며 입력하지 않을 경우 비교 대상은 없습니다.
         `(비교 대상)`이 없을 때: `(사용자)`의 능력치를 보여줍니다.
         `(비교 대상)`이 있을 때: `(사용자)`와 `(비교 대상)`의 능력치를 보여주고 각 능력치별로 어느 쪽의 능력치가 얼마나 높은지 보여줍니다.
@@ -505,7 +505,7 @@ class User(commands.Cog):
     @commands.hybrid_command(name="광장입장권",
                              aliases=['agora_ticket', 'agoraticket', 'ㄱㅈㅇㅈㄱ', '광장', 'ㄱㅈ', '입장권', 'ㅇㅈㄱ', 'rwdwr', 'rhkdwkd', 'rw', 'dlqwkdrnjs', 'dwr'],
                              description="광장 입장권의 개수와 만료일 확인합니다.",
-                             with_app_command=True)
+                             usage="(사용자)")
     @commands.guild_only()
     @app_commands.guild_only()
     @app_commands.describe(member="광장 입장권 정보를 조회할 대상. 입력하지 않을 경우 본인이 조회됨.")
@@ -568,3 +568,4 @@ class User(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(User(bot))
+    
