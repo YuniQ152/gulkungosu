@@ -115,7 +115,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                 for i in range(len(buff_id)):
                     buff = fetch_buff_one(buff_id[i])
                     embed.add_field(name=f"써서 버프 발동: {buff['name_ko']}", value=f">>> {buff['icon']} {buff['description_ko']}\n⏰ 지속 시간: {convert_seconds_to_time_text(int(buff_duration[i]/1000))}", inline=False)
-                    
+
             if "coupon" in result['options']:
                 coupon = result['options']['coupon']
                 if coupon != "variable": # coupon이 동적이 아닌경우
@@ -397,7 +397,7 @@ class Search(commands.Cog):
         result = []
         result_count = 0
         for i in range(4):
-            if db_list[i]['ratio'] == 1:
+            if db_list[i]['ratio'] >= 0.96:
                 result.append(db_list[i])
                 result_count += 1
             else:
