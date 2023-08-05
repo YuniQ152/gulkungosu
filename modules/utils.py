@@ -32,11 +32,11 @@ def search_db(keyword: str, whitelist: list = None) -> list:
         for i in range(len(buffs)):
             buffs[i]['type'] = 'buff'
 
-        stats = fetch_stat_all()
-        for i in range(len(stats)):
-            stats[i]['type'] = 'stat'
+        options = fetch_option_all()
+        for i in range(len(options)):
+            options[i]['type'] = 'option'
 
-        db_list = [*items, *crops, *facilities, *buffs, *stats]
+        db_list = [*items, *crops, *facilities, *buffs, *options]
     else:
         db_list = whitelist
 
@@ -109,7 +109,7 @@ def search_db(keyword: str, whitelist: list = None) -> list:
     if is_chosung(keyword): # 검색어가 초성인지 확인
         for i in range(len(db_list)):
             ratio_list = []
-            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name_ko'], True, True))
+            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name'], True, True))
             if db_list[i]['aliases'] is not None:
                 ratio_list.append(compute_match_ratio(keyword, db_list[i]['aliases'], False, True))
             db_list[i]['ratio'] = max(ratio_list)
@@ -117,8 +117,7 @@ def search_db(keyword: str, whitelist: list = None) -> list:
     else:
         for i in range(len(db_list)):
             ratio_list = []
-            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name_ko'], True))
-            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name_en'], False))
+            ratio_list.append(compute_match_ratio(keyword, db_list[i]['name'], True))
             if db_list[i]['aliases'] is not None:
                 ratio_list.append(compute_match_ratio(keyword, db_list[i]['aliases'], False))
             db_list[i]['ratio'] = max(ratio_list)
@@ -126,7 +125,7 @@ def search_db(keyword: str, whitelist: list = None) -> list:
 
     print(f"is_chosung? {is_chosung(keyword)}")
     for i in range(10): 
-        print(db_list[i]['name_ko'], db_list[i]['ratio'])
+        print(db_list[i]['name'], db_list[i]['ratio'])
     print()
     return db_list
 
@@ -206,9 +205,9 @@ def generate_crop_text(crop: dict, topic: str = None):
     elif growth == "maturity":    crop_text += "🌿" if crop_id != "pumpkin" else "🥒"
     elif growth == "fruitage":    crop_text +=f"{fetch_crop_one(crop_id)['icon']}"
     if 'num' in crop:
-        crop_text += f" **{fetch_crop_one(crop_id)['name_ko']}** ({crop['num']})"
+        crop_text += f" **{fetch_crop_one(crop_id)['name']}** ({crop['num']})"
     else:
-        crop_text += f" **{fetch_crop_one(crop_id)['name_ko']}**"
+        crop_text += f" **{fetch_crop_one(crop_id)['name']}**"
     
     print_factor_count = 0
     if fertility < 0.3 or topic == "fertility" or topic == "all" or status == 2: print_factor_count += 1
