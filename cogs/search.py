@@ -289,7 +289,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         return embed
 
 
-    def search_embed_stat() -> discord.Embed:
+    def search_embed_option() -> discord.Embed:
         embed=discord.Embed(title=f"{result['icon']} {result['name']}", description=f"{result['description']}", color=discord.Color(0xe67e22))
         field_value = ""
         items = fetch_item_all()
@@ -333,8 +333,8 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         return search_embed_facility()
     elif result['type'] == "buff":
         return search_embed_buff()
-    elif result['type'] == "stat":
-        return search_embed_stat()
+    elif result['type'] == "option":
+        return search_embed_option()
 
 
 
@@ -352,7 +352,7 @@ class SearchButton(Button):
             button_style = discord.ButtonStyle.red
         elif best['type'] == "buff":
             button_style = discord.ButtonStyle.blurple
-        elif best['type'] == "stat":
+        elif best['type'] == "option":
             button_style = discord.ButtonStyle.red
         super().__init__(label=best['name'], emoji=best['icon'], style=button_style)
         self.best      = best
