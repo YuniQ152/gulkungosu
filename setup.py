@@ -9,12 +9,26 @@ def db_item() -> None:
         url = "https://farm.jjo.kr/api/static/item/" + str(item_name)
         response = requests.get(url, headers={"Authorization": os.getenv("BHMO_API_TOKEN")})
         content = json.loads(response.content)
-        data = content['data']
-        data |= {"name_ko": content['names']['ko']}
-        data |= {"name_en": content['names']['en']}
-        data |= {"descriptions_ko": content['descriptions']['ko']}
-        data |= {"descriptions_en": content['descriptions']['en']}
-        return data
+        
+        item = {}
+        item |= {"id": content['data']['id']}
+        item |= {"icon": content['data']['icon']}
+        item |= {"name": content['names']['ko']}
+        item |= {"description": content['descriptions']['ko'].replace("<:blue_haired_moremi:923442506195173456>", "<:blue_haired_moremi:1122898278313377893>")}
+        item |= {"category": content['data']['category']}
+        item |= {"level": content['data']['level']}
+        item |= {"weight": content['data']['weight']}
+        item |= {"vested": 1} if content['data']['vested'] else {"vested": 0}
+        item |= {"planted": 1} if content['data']['planted'] else {"planted": 0}
+        item |= {"usable": 1} if content['data']['usable'] else {"usable": 0}
+        item |= {"collectible": 1} if content['data']['collectible'] else {"collectible": 0}
+        item |= {"options": content['data']['options']} if content['data']['options'] else {"options": None}
+        if content['data']['options'] is not None:
+            item |= {"coupon": content['data']['options']['coupon']} if "coupon" in content['data']['options'] else {"coupon": None}
+        else:
+            item |= {"coupon": None}
+
+        return item
 
     def get_item_recipe(item_id: str) -> dict:
         url = "https://farm.jjo.kr/api/static/recipe/" + str(item_id)
@@ -33,24 +47,17 @@ def db_item() -> None:
     conn.execute("""CREATE TABLE IF NOT EXISTS item(
         id TEXT PRIMARY KEY,
         icon TEXT,
+        name TEXT,
+        description TEXT,
         category TEXT,
         level INTEGER,
         weight INTEGER,
-        options TEXT,
-        basic_stats TEXT,
-        stats TEXT,
-        health TEXT,
-        buffs TEXT,
-        coupon TEXT,
-        etc TEXT,
         vested INTEGER,
         planted INTEGER,
         usable INTEGER,
         collectible INTEGER,
-        name_ko TEXT,
-        name_en TEXT,
-        description_ko TEXT,
-        description_en TEXT,
+        options TEXT,
+        coupon TEXT,
         craftables TEXT,
         ingredients TEXT,
         steps TEXT,
@@ -66,45 +73,20 @@ def db_item() -> None:
 
         item = get_item(items[i]['name'])
         item_id = item['id']
-
         insert_list = list(item.values())
         for j in range(len(insert_list)):
             if insert_list[j] is not None:
                 insert_list[j] = str(insert_list[j])
-                if insert_list[j] == "True":
-                    insert_list[j] = 1
-                elif insert_list[j] == "False":
-                    insert_list[j] = 0
-        cur.execute("INSERT OR REPLACE INTO item(id, icon, category, level, weight, options, vested, planted, usable, collectible, name_ko, name_en, description_ko, description_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", insert_list)
+        cur.execute("INSERT OR REPLACE INTO item(id, icon, name, description, category, level, weight, vested, planted, usable, collectible, options, coupon) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", insert_list)
         if "aliases" in items[i]:
             cur.execute(f"UPDATE item SET aliases=? WHERE id=?", (str(items[i]['aliases']), item_id))
-
-
-        option_keys = {'basic_stats': ['ferocity', 'mentality', 'agility', 'tenacity', 'harmonicity'],
-                       'stats': ['pf', 'mf', 'pr', 'mr', 'speed', 'concentration'],
-                       'health': ['healAcceleration', 'divisibleHealth', 'health', 'maxHealth'],
-                       'buffs': ['buffByEating', 'buffByUsing'],
-                       'coupon': ['coupon'],
-                       'etc': ['rainResistance', 'capacity', 'lifespan', 'expiredAt']}
-
-
-        if item['options'] is not None:
-            for k in option_keys:
-                v = option_keys[k]
-                d = {}
-                for j in v:
-                    if j in item['options']:
-                        d |= {j: item['options'][j]}
-                        print(item_id, k, j, item['options'][j], d)
-                if len(d) != 0:
-                    cur.execute(f"UPDATE item SET {k}=? WHERE id=?", (str(d), item_id))
 
         response_code, craftables, ingredients, steps = get_item_recipe(item_id)
         if response_code == 200:
             cur.execute("UPDATE item SET craftables=?, ingredients=?, steps=? WHERE id=?", (str(craftables), str(ingredients), str(steps), item_id))
-            print(f"[{item['icon']} 아이템 및 제작 방법 추가됨. ({i+1}/{len(items)})")
+            print(f"[{item['icon']} {item['name']}] 아이템 및 제작 방법 추가됨. ({i+1}/{len(items)})")
         elif response_code == 406:
-            print(f"[{item['icon']} 아이템 추가됨. 제작 방법 없음. ({i+1}/{len(items)})")
+            print(f"[{item['icon']} {item['name']}] 아이템 추가됨. 제작 방법 없음. ({i+1}/{len(items)})")
 
         conn.commit()
         time.sleep(1)
@@ -119,32 +101,35 @@ def db_crop() -> None:
         url = "https://farm.jjo.kr/api/static/crop/" + str(crop_id)
         response = requests.get(url, headers={"Authorization": os.getenv("BHMO_API_TOKEN")})
         content = json.loads(response.content)
-        data = content['data']
-        data['isTree'] = 1 if data['isTree'] is True else 0
-        data |= data['characteristics']
-        data |= {"name_ko": content['names']['ko']}
-        data |= {"name_en": content['names']['en']}
-        data |= {"descriptions_ko": content['descriptions']['ko']}
-        data |= {"descriptions_en": content['descriptions']['en']}
-        del data['characteristics']
-        return data
+
+        crop = {}
+        crop |= {"id": content['data']['id']}
+        crop |= {"icon": content['data']['icon']}
+        crop |= {"name": content['names']['ko']}
+        crop |= {"description": content['descriptions']['ko'].replace("<:blue_haired_moremi:923442506195173456>", "<:blue_haired_moremi:1122898278313377893>")}
+        crop |= {"is_tree": 1} if content['data']['isTree'] else {"is_tree": 0}
+        crop |= {"level": content['data']['level']}
+        crop |= {"strawberry": content['data']['strawberry']}
+        crop |= {"growth": content['data']['characteristics']['growth']}
+        crop |= {"water": content['data']['characteristics']['water']}
+        crop |= {"soil": content['data']['characteristics']['soil']}
+        crop |= {"health": content['data']['characteristics']['health']}
+        return crop
 
     conn = sqlite3.connect("db.sqlite3")
     cur = conn.cursor()
     conn.execute("""CREATE TABLE IF NOT EXISTS crop(
         id TEXT PRIMARY KEY,
         icon TEXT,
+        name TEXT,
+        description TEXT,
+        is_tree INTEGER,
         level INTEGER,
         strawberry INTEGER,
-        is_tree INTEGER,
         growth TEXT,
         water TEXT,
         soil TEXT,
         health TEXT,
-        name_ko TEXT,
-        name_en TEXT,
-        description_ko TEXT,
-        description_en TEXT,
         aliases TEXT
         )""")
     conn.commit()
@@ -164,7 +149,7 @@ def db_crop() -> None:
         for j in range(len(insert_list)):
             if insert_list[j] is not None:
                 insert_list[j] = str(insert_list[j])
-        cur.execute("INSERT OR REPLACE INTO crop(id, icon, level, strawberry, is_tree, growth, water, soil, health, name_ko, name_en, description_ko, description_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (insert_list))
+        cur.execute("INSERT OR REPLACE INTO crop(id, icon, name, description, is_tree, level, strawberry, growth, water, soil, health) VALUES (?,?,?,?,?,?,?,?,?,?,?)", (insert_list))
         if "aliases" in crops[i]:
             cur.execute(f"UPDATE crop SET aliases=? WHERE id=?", (str(crops[i]['aliases']), crop_id))
         conn.commit()
@@ -178,29 +163,33 @@ def db_facility():
         url = "https://farm.jjo.kr/api/static/facility/" + str(facility_id)
         response = requests.get(url, headers={"Authorization": os.getenv("BHMO_API_TOKEN")})
         content = json.loads(response.content)
-        data = {'id': None, 'icon': None, 'color': None, 'level': None, 'size': None}
-        data |= content['data']
-        data |= {"name_ko": content['names']['ko']}
-        data |= {"name_en": content['names']['en']}
-        data |= {"descriptions_ko": content['descriptions']['ko']}
-        data |= {"descriptions_en": content['descriptions']['en']}
-        return data
+    
+        facility = {}
+        facility |= {"id": content['data']['id']}
+        facility |= {"icon": content['data']['icon']}
+        facility |= {"name": content['names']['ko']}
+        facility |= {"description": content['descriptions']['ko'].replace("<:blue_haired_moremi:923442506195173456>", "<:blue_haired_moremi:1122898278313377893>")}
+        facility |= {"color": content['data']['color']}
+        facility |= {"level": content['data']['level']}
+        facility |= {"size": content['data']['size']} if "size" in content['data'] else {"size": None}
+        facility |= {"rotatable": 1} if content['data']['rotatable'] else {"rotatable": 0}
+        facility |= {"build_costs": content['data']['buildCosts']}
+        facility |= {"options": content['data']['options']}
+        return facility
 
     conn = sqlite3.connect("db.sqlite3")
     cur = conn.cursor()
     conn.execute("""CREATE TABLE IF NOT EXISTS facility(
         id TEXT PRIMARY KEY,
         icon TEXT,
+        name TEXT,
+        description TEXT,
         color TEXT,
         level INTEGER,
         size TEXT,
+        rotatable INTEGER,
         build_costs TEXT,
         options TEXT,
-        rotatable INTEGER,
-        name_ko TEXT,
-        name_en TEXT,
-        description_ko TEXT,
-        description_en TEXT,
         aliases TEXT
         )""")
     conn.commit()
@@ -222,7 +211,7 @@ def db_facility():
         for j in range(len(insert_list)):
             if insert_list[j] is not None:
                 insert_list[j] = str(insert_list[j])
-        cur.execute("INSERT OR REPLACE INTO facility(id, icon, color, level, size, build_costs, options, rotatable, name_ko, name_en, description_ko, description_en) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (insert_list))
+        cur.execute("INSERT OR REPLACE INTO facility(id, icon, name, description, color, level, size, rotatable, build_costs, options) VALUES (?,?,?,?,?,?,?,?,?,?)", (insert_list))
         if "aliases" in facilities[i]:
             cur.execute(f"UPDATE facility SET aliases=? WHERE id=?", (str(facilities[i]['aliases']), facility_id))
         conn.commit()
@@ -235,11 +224,9 @@ def db_buff():
     conn.execute("""CREATE TABLE IF NOT EXISTS buff(
         id TEXT PRIMARY KEY,
         icon TEXT,
+        name TEXT,
+        description TEXT,
         options TEXT,
-        name_ko TEXT,
-        name_en TEXT,
-        description_ko TEXT,
-        description_en TEXT,
         aliases TEXT
         )""")
     conn.commit()
@@ -258,23 +245,21 @@ def db_buff():
         for j in range(len(insert_list)):
             if insert_list[j] is not None:
                 insert_list[j] = str(insert_list[j])
-        cur.execute("INSERT OR REPLACE INTO buff(id, icon, options, name_ko, name_en, description_ko, description_en, aliases) VALUES (?,?,?,?,?,?,?,?)", (insert_list))
+        cur.execute("INSERT OR REPLACE INTO buff(id, icon, name, description, options, aliases) VALUES (?,?,?,?,?,?)", (insert_list))
         if "aliases" not in buff or buff['aliases'] is None:
             cur.execute(f"UPDATE buff SET aliases=NULL WHERE id=?", (buff_id, ))
         conn.commit()
 
     conn.close()
 
-def db_stat():
+def db_option():
     conn = sqlite3.connect("db.sqlite3")
     cur = conn.cursor()
-    conn.execute("""CREATE TABLE IF NOT EXISTS stat(
+    conn.execute("""CREATE TABLE IF NOT EXISTS option(
         id TEXT PRIMARY KEY,
         icon TEXT,
-        name_ko TEXT,
-        name_en TEXT,
-        description_ko TEXT,
-        description_en TEXT,
+        name TEXT,
+        description TEXT,
         aliases TEXT
         )""")
     conn.commit()
@@ -282,10 +267,10 @@ def db_stat():
     with open("getdata.json", "rt", encoding="UTF-8") as file:
         data = json.load(file)
 
-    stats = data['option']
+    options = data['option']
 
-    for i in range(len(stats)):
-        stat = stats[i]
+    for i in range(len(options)):
+        stat = options[i]
         stat_id = stat['id']
         print(stat)
 
@@ -293,7 +278,7 @@ def db_stat():
         for j in range(len(insert_list)):
             if insert_list[j] is not None:
                 insert_list[j] = str(insert_list[j])
-        cur.execute("INSERT OR REPLACE INTO stat(id, icon, name_ko, name_en, description_ko, description_en, aliases) VALUES (?,?,?,?,?,?,?)", (insert_list))
+        cur.execute("INSERT OR REPLACE INTO option(id, icon, name, description, aliases) VALUES (?,?,?,?,?)", (insert_list))
         if "aliases" not in stat or stat['aliases'] is None:
             cur.execute(f"UPDATE buff SET aliases=NULL WHERE id=?", (stat_id, ))
         conn.commit()
@@ -306,4 +291,4 @@ db_item()
 db_crop()
 db_facility()
 db_buff()
-db_stat()
+db_option()
