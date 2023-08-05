@@ -69,7 +69,7 @@ async def check():
     embeds = []
     for cofarm_id in cofarm_id_list:
         response_code, farms, contributions = get_cofarm_info(809809541385682964, cofarm_id)
-        if response_code != 200: await message_channel.send(api_error_message(response_code), ephemeral=True); return
+        if response_code != 200: await message_channel.send(api_error_message(response_code)); return
 
         plowable  = 0    # 밭 갈기 가능 수
         waterable = 0    # 물 주기 가능 수

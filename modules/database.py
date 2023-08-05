@@ -64,19 +64,19 @@ def fetch_buff_all() -> list[dict]:
         if row['options'] is not None: row['options'] = literal_eval(row['options'])
     return buff_list
 
-def fetch_stat_one(stat_id: str) -> dict:
-    cur.execute("SELECT * FROM stat WHERE id = ?", (stat_id, ))
+def fetch_option_one(option_id: str) -> dict:
+    cur.execute("SELECT * FROM option WHERE id = ?", (option_id, ))
     row = dict(cur.fetchone())
     return row
-def fetch_stat_all() -> list[dict]:
-    cur.execute("SELECT * FROM stat")
+def fetch_option_all() -> list[dict]:
+    cur.execute("SELECT * FROM option")
     rows = cur.fetchall()
-    stat_list = [dict(rows[i]) for i in range(len(rows))] # [{...}, {...}, {...}, ...]
-    return stat_list
+    option_list = [dict(rows[i]) for i in range(len(rows))] # [{...}, {...}, {...}, ...]
+    return option_list
 
 # def fetch_name_only():
 #     rows = []
-#     tables = ['item', 'crop', 'facility', 'buff', 'stat']
+#     tables = ['item', 'crop', 'facility', 'buff', 'option']
 #     for table in tables:
 #         cur.execute(f"SELECT id, name_ko, name_en, aliases FROM {table}")
 #         rows += cur.fetchall()

@@ -400,25 +400,32 @@ class Search(commands.Cog):
         result = []
         result_count = 0
         for i in range(4):
-            if db_list[i]['ratio'] >= 0.96:
+            if db_list[i]['ratio'] >= 0.97:
                 result.append(db_list[i])
                 result_count += 1
             else:
                 break
 
         if result_count == 0: # embeds가 없을 때
-            if db_list[0]['ratio'] >= 0.5 and db_list[0]['ratio'] > db_list[1]['ratio']*1.02 or db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15: # ratio가 50% 이상이고 다음 ratio에 비해 2% 이상 높거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
-                if isinstance(ctx.channel, discord.channel.DMChannel):
-                    embed = search_embed(db_list[0], 0, 0)
+            if db_list[0]['ratio'] >= 0.5 or (db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15): # ratio가 50% 이상이거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
+                if db_list[0]['name'] == db_list[1]['name'] or (db_list[0]['aliases'] == db_list[1]['aliases'] and db_list[0]['aliases'] is not None): # 같은 이름의 아이템 + 작물
+                    if isinstance(ctx.channel, discord.channel.DMChannel):
+                        embeds = [search_embed(db_list[0], 0, 0), search_embed(db_list[1], 0, 0)]
+                    else:
+                        embeds = [search_embed(db_list[0], ctx.guild.id, ctx.author.id), search_embed(db_list[1], ctx.guild.id, ctx.author.id)]
+                    await ctx.reply(embeds=embeds)
                 else:
-                    embed = search_embed(db_list[0], ctx.guild.id, ctx.author.id)
-                await ctx.reply(embed=embed)
+                    if isinstance(ctx.channel, discord.channel.DMChannel):
+                        embed = search_embed(db_list[0], 0, 0)
+                    else:
+                        embed = search_embed(db_list[0], ctx.guild.id, ctx.author.id)
+                    await ctx.reply(embed=embed)
 
             else:
                 description = ""
                 suggest_count = 0
                 for i in range(15):
-                    if db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.15: # ratio가 20% 이하거나 가장 높은 ratio에 비해 15% 이상 낮은 경우
+                    if (db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.15) and i >= 5: # ratio가 20% 이하거나 가장 높은 ratio에 비해 15% 이상 낮은 경우
                         break
                     description += f"{db_list[i]['icon']} **{db_list[i]['name']}**\n"
                     suggest_count += 1
@@ -435,7 +442,7 @@ class Search(commands.Cog):
                 embed = search_embed(db_list[0], ctx.guild.id, ctx.author.id)
             await ctx.reply(embed=embed)
 
-        elif result_count == 2 and db_list[0]['name'] == db_list[1]['name']:
+        elif result_count == 2 and (db_list[0]['name'] == db_list[1]['name'] or (db_list[0]['aliases'] == db_list[1]['aliases'] and db_list[0]['aliases'] is not None)): # 같은 이름의 아이템 + 작물
             if isinstance(ctx.channel, discord.channel.DMChannel):
                 embeds = [search_embed(db_list[0], 0, 0), search_embed(db_list[1], 0, 0)]
             else:

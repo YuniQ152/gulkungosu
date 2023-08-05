@@ -32,11 +32,11 @@ def search_db(keyword: str, whitelist: list = None) -> list:
         for i in range(len(buffs)):
             buffs[i]['type'] = 'buff'
 
-        stats = fetch_stat_all()
-        for i in range(len(stats)):
-            stats[i]['type'] = 'stat'
+        options = fetch_option_all()
+        for i in range(len(options)):
+            options[i]['type'] = 'option'
 
-        db_list = [*items, *crops, *facilities, *buffs, *stats]
+        db_list = [*items, *crops, *facilities, *buffs, *options]
     else:
         db_list = whitelist
 
