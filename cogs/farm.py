@@ -17,7 +17,7 @@ def farm_embed(member, farm):
             if crop is not None: # 작물이 심어져 있을 때
                 crop_count += 1
                 farm[i]['num'] = i+1
-                text += generate_crop_text(farm[i], topic="all")
+                text += crop_text(farm[i], topic="all")
             else:
                 text += f"> <:blank:908031851732533318> **작물 없음** ({i+1})\n"
 
@@ -43,7 +43,7 @@ def farm_embed(member, farm):
 
             if crop['growth'] == "fruitage": # 작물이 수확 가능한 경우
                 harvestable += 1
-                harvestable_text += generate_crop_text(farm[i])
+                harvestable_text += crop_text(farm[i])
 
             if crop['humidity'] <= 0.9:
                 waterable_count += 1
@@ -78,13 +78,13 @@ def farm_embed(member, farm):
         farm = sorted(farm, key=lambda x:x['fertility'])
         if farm[0]['fertility'] >= 0.3: # 가장 비옥도가 낮은 작물이 30% 이상인 경우 (비옥도가 낮아서 위독한 작물이 없는 경우)
             for i in range(min(5, len(farm))):
-                fertility_text += generate_crop_text(farm[i], "fertility")
+                fertility_text += crop_text(farm[i], "fertility")
         else:
             for i in range(len(farm)):
                 if farm[i]['fertility'] < 0.3:
                     severe_count += 1
                 if i < 10:
-                    fertility_text += generate_crop_text(farm[i], "fertility")
+                    fertility_text += crop_text(farm[i], "fertility")
             if severe_count > 10:
                 fertility_text += f"> ❕ 비옥도가 낮은 작물이 `{severe_count - 10}`개 더 있어요"
         embed.add_field(name=f"⚒ 밭 갈기 가능: {plowable_count}", value=fertility_text, inline=False)
@@ -97,13 +97,13 @@ def farm_embed(member, farm):
         farm = sorted(farm, key=lambda x:x['humidity'])
         if farm[0]['humidity'] >= 0.2:
             for i in range(min(5, len(farm))):
-                humidity_text += generate_crop_text(farm[i], "humidity")
+                humidity_text += crop_text(farm[i], "humidity")
         else:
             for i in range(len(farm)):
                 if farm[i]['humidity'] < 0.2:
                     severe_count += 1
                 if i < 10:
-                    humidity_text += generate_crop_text(farm[i], "humidity")
+                    humidity_text += crop_text(farm[i], "humidity")
             if severe_count > 10:
                 humidity_text += f"> ❕ 수분이 부족한 작물이 `{severe_count - 10}`개 더 있어요"
         embed.add_field(name=f"🚿 물 뿌리기 가능: {waterable_count}", value=humidity_text, inline=False)
@@ -118,13 +118,13 @@ def farm_embed(member, farm):
             for i in range(min(5, len(farm))):
                 if farm[i]['health'] == 1.0:
                     break
-                health_text += generate_crop_text(farm[i], "health")
+                health_text += crop_text(farm[i], "health")
         else:
             for i in range(len(farm)):
                 if farm[i]['health'] < 0.5:
                     severe_count += 1
                 if i < 10:
-                    health_text += generate_crop_text(farm[i], "health")
+                    health_text += crop_text(farm[i], "health")
             if severe_count > 10:
                 health_text += f"> ❕ 체력이 낮은 작물이 `{severe_count - 10}`개 더 있어요"
         embed.add_field(name=f"🧪 영양제 소비 가능: {low_health_count}", value=health_text, inline=False)

@@ -80,7 +80,7 @@ class Cofarm(commands.Cog):
 
                     if humidity <= 0.2 or fertility <= 0.3 or health <= 0.5:
                         severe_count += 1
-                        severe_text += generate_crop_text(crop)
+                        severe_text += crop_text(crop)
 
             crop_count = 0
             for crop in farms:

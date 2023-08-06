@@ -58,7 +58,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         if result['options'] is not None:
             if "expiredAt" in result['options']:
                 expired_at = result['options']['expiredAt']
-                embed.add_field(name="⌛ 만료일", value=f"<t:{int(expired_at/1000)}:D>", inline=True)
+                embed.add_field(name="⌛ 기간제 아이템", value=f"<t:{int(expired_at/1000)}:D>", inline=True)
 
             option_list = [['health', '💙 활동력 회복', ''],
                            ['divisibleHealth', '💙 활동력 회복', ' (나눠쓰기 가능)']]
@@ -141,7 +141,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                 
                 if craftable['coproducts'] is not None: # craftable['coproducts'] == {'soy-paste': [3, 4]}
                     coproducts = list(craftable['coproducts'].items())
-                    text += " 부산물로 "
+                    text += " 이 때 부산물로 "
                     for coproduct in coproducts:
                         item = fetch_item_one(coproduct[0])
                         text += f"{item['icon']} **{item['name']}** {tilde_number(coproduct[1])}개, "
@@ -164,6 +164,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                         text += f"> {item['icon']} **{item['name']}** × {result['ingredients'][i][1]}개 `({item_quantity}/{result['ingredients'][i][1]})❌`\n"
                 except:
                     text += f"> {item['icon']} **{item['name']}** × {result['ingredients'][i][1]}개\n"
+            text += step_text(result['steps'])
             embed.add_field(name="제작 방법", value=text, inline=False)
 
         footer_text = f"[아이템] {item_category_to_text(result['category'])}"
@@ -276,14 +277,25 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
 
     def search_embed_buff() -> discord.Embed:
         embed=discord.Embed(title=f"{result['icon']} {result['name']}", description=f"{result['description']}", color=discord.Color(0x5dadec))
-        field_value = ""
         items = fetch_item_all()
+
+        field_value = ""
         for item in items:
             try:
                 field_value += f"> {item['icon']} **{item['name']}** | {convert_seconds_to_time_text(item['options']['buffByEating'][result['id']]/1000)}\n"
             except:
                 pass
-        embed.add_field(name="이 버프를 가지고 있는 음식", value=field_value, inline=False)
+        if field_value != "":
+            embed.add_field(name="이 버프를 먹어서 발동시킬 수 있는 음식", value=field_value, inline=False)
+
+        field_value = ""
+        for item in items:
+            try:
+                field_value += f"> {item['icon']} **{item['name']}** | {convert_seconds_to_time_text(item['options']['buffByUsing'][result['id']]/1000)}\n"
+            except:
+                pass
+        if field_value != "":
+            embed.add_field(name="이 버프를 써서 발동시킬 수 있는 아이템", value=field_value, inline=False)
 
         embed.set_footer(text=f"[버프]")
         return embed
@@ -291,8 +303,8 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
 
     def search_embed_option() -> discord.Embed:
         embed=discord.Embed(title=f"{result['icon']} {result['name']}", description=f"{result['description']}", color=discord.Color(0xe67e22))
-        field_value = ""
         items = fetch_item_all()
+        field_value = ""
         if result['id'] != "expiredAt":
             for item in items:
                 if item['options'] is not None: # item에 옵션이 있고
@@ -320,6 +332,24 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         embed.set_footer(text=f"[능력치]")
         return embed
 
+
+    def search_embed_step() -> discord.Embed:
+        embed=discord.Embed(title=f"{result['icon']} {result['name']}", description=f"{result['description']}", color=discord.Color(0xe67e22))
+        items = fetch_item_all()
+        field_value = ""
+        for item in items:
+            if item['steps'] is not None:
+                if item['steps'].count(result['id']) == 0:
+                    pass
+                elif item['steps'].count(result['id']) == 1:
+                    field_value += f"> {item['icon']} **{item['name']}**\n"
+                else:
+                    field_value += f"> {item['icon']} **{item['name']}** × {item['steps'].count(result['id'])}\n"
+
+        embed.add_field(name="이 제작 과정을 포함하는 아이템", value=field_value, inline=False)
+        embed.set_footer(text=f"[제작 과정]")
+        return embed
+
     
     if result['type'] == "item" and result['id'] == "gem":
         return search_embed_gem(guild_id, user_id)
@@ -335,6 +365,8 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         return search_embed_buff()
     elif result['type'] == "option":
         return search_embed_option()
+    elif result['type'] == "step":
+        return search_embed_step()
 
 
 
@@ -353,6 +385,8 @@ class SearchButton(Button):
         elif best['type'] == "buff":
             button_style = discord.ButtonStyle.blurple
         elif best['type'] == "option":
+            button_style = discord.ButtonStyle.red
+        elif best['type'] == "step":
             button_style = discord.ButtonStyle.red
         super().__init__(label=best['name'], emoji=best['icon'], style=button_style)
         self.best      = best
@@ -409,11 +443,24 @@ class Search(commands.Cog):
         if result_count == 0: # embeds가 없을 때
             if db_list[0]['ratio'] >= 0.5 or (db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15): # ratio가 50% 이상이거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
                 if db_list[0]['name'] == db_list[1]['name'] or (db_list[0]['aliases'] == db_list[1]['aliases'] and db_list[0]['aliases'] is not None): # 같은 이름의 아이템 + 작물
-                    if isinstance(ctx.channel, discord.channel.DMChannel):
-                        embeds = [search_embed(db_list[0], 0, 0), search_embed(db_list[1], 0, 0)]
+                    if db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[2]['ratio']*1.15:
+                        if isinstance(ctx.channel, discord.channel.DMChannel):
+                            embeds = [search_embed(db_list[0], 0, 0), search_embed(db_list[1], 0, 0)]
+                        else:
+                            embeds = [search_embed(db_list[0], ctx.guild.id, ctx.author.id), search_embed(db_list[1], ctx.guild.id, ctx.author.id)]
+                        await ctx.reply(embeds=embeds)
                     else:
-                        embeds = [search_embed(db_list[0], ctx.guild.id, ctx.author.id), search_embed(db_list[1], ctx.guild.id, ctx.author.id)]
-                    await ctx.reply(embeds=embeds)
+                        description = ""
+                        suggest_count = 0
+                        for i in range(15):
+                            if (db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.25) and i >= 5: # ratio가 20% 이하거나 가장 높은 ratio에 비해 25% 이상 낮은 경우 멈춤
+                                break
+                            description += f"{db_list[i]['icon']} **{db_list[i]['name']}**\n"
+                            suggest_count += 1
+
+                        if suggest_count != 0:
+                            embed=discord.Embed(title="이것을 찾으셨나요?", description=description, color=discord.Color.random())
+                            await ctx.reply(content="", embed=embed)
                 else:
                     if isinstance(ctx.channel, discord.channel.DMChannel):
                         embed = search_embed(db_list[0], 0, 0)
@@ -425,13 +472,15 @@ class Search(commands.Cog):
                 description = ""
                 suggest_count = 0
                 for i in range(15):
-                    if (db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.15) and i >= 5: # ratio가 20% 이하거나 가장 높은 ratio에 비해 15% 이상 낮은 경우
+                    if (db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.25) and i >= 5: # ratio가 20% 이하거나 가장 높은 ratio에 비해 25% 이상 낮은 경우 멈춤
                         break
                     description += f"{db_list[i]['icon']} **{db_list[i]['name']}**\n"
                     suggest_count += 1
+
                 if suggest_count != 0:
                     embed=discord.Embed(title="이것을 찾으셨나요?", description=description, color=discord.Color.random())
                     await ctx.reply(content="", embed=embed)
+
                 else:
                     await ctx.reply(f"`{keyword}`에 해당하는 적절한 아이템/작물/시설물/버프/능력치를 찾을 수 없습니다.")
 

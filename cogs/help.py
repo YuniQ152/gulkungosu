@@ -23,7 +23,7 @@ class HelpCommand(commands.HelpCommand):
         embed.add_field(name="🤖 명령어 목록", value='\n'.join(command_list), inline=False)
         embed.add_field(name="💁 도움이 필요하신가요?",
                         value="글쿤 고수의 질문, 건의, 버그 제보, 그 외의 다양한 것들을 언제나 환영합니다!\n"
-                              "이러한 것들이 필요하시다면 [고등어 서버](https://discord.gg/WXjQZ3eJs5)의 포스트에 남겨주세요.",
+                              "이러한 것들이 필요하시다면 [고등어 서버](https://discord.gg/WXjQZ3eJs5)의 <#1051544401303842832>에서 포스트를 남겨주세요.",
                         inline=False)
         bot_owner = await ctx.bot.fetch_user(ctx.bot.owner_id)
         embed.set_footer(text=f"Made by @{bot_owner.name}", icon_url=bot_owner.avatar.url)

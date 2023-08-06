@@ -90,8 +90,8 @@ def db_item() -> None:
 
         conn.commit()
         time.sleep(1)
-    print(f"완료. 모든 아이템을 성공적으로 추가했습니다.\n")
 
+    print(f"완료. 모든 아이템을 성공적으로 추가했습니다.\n")
     conn.close()
 
 
@@ -143,7 +143,6 @@ def db_crop() -> None:
 
         crop_id = crops[i]['id']
         crop = get_crop_info(crop_id)
-        print(crop)
 
         insert_list = list(crop.values())
         for j in range(len(insert_list)):
@@ -153,7 +152,10 @@ def db_crop() -> None:
         if "aliases" in crops[i]:
             cur.execute(f"UPDATE crop SET aliases=? WHERE id=?", (str(crops[i]['aliases']), crop_id))
         conn.commit()
+        print(f"[{crop['icon']} {crop['name']}] 작물 추가됨. ({i+1}/{len(crops)})")
+        time.sleep(0.15)
 
+    print(f"완료. 모든 작물을 성공적으로 추가했습니다.\n")
     conn.close()
 
 
@@ -203,9 +205,6 @@ def db_facility():
 
         facility_id = facilities[i]['id']
         facility = get_facility_info(facility_id)
-        # if "size" not in facility:  #
-        #     facility['size'] = None #
-        print(facility)
 
         insert_list = list(facility.values())
         for j in range(len(insert_list)):
@@ -215,8 +214,12 @@ def db_facility():
         if "aliases" in facilities[i]:
             cur.execute(f"UPDATE facility SET aliases=? WHERE id=?", (str(facilities[i]['aliases']), facility_id))
         conn.commit()
+        print(f"[{facility['icon']} {facility['name']}] 시설물 추가됨. ({i+1}/{len(facilities)})")
+        time.sleep(0.15)
 
+    print(f"완료. 모든 시설물을 성공적으로 추가했습니다.\n")
     conn.close()
+
 
 def db_buff():
     conn = sqlite3.connect("db.sqlite3")
@@ -239,7 +242,6 @@ def db_buff():
     for i in range(len(buffs)):
         buff = buffs[i]
         buff_id = buff['id']
-        print(buff)
 
         insert_list = list(buff.values())
         for j in range(len(insert_list)):
@@ -249,8 +251,11 @@ def db_buff():
         if "aliases" not in buff or buff['aliases'] is None:
             cur.execute(f"UPDATE buff SET aliases=NULL WHERE id=?", (buff_id, ))
         conn.commit()
+        print(f"[{buff['icon']} {buff['name']}] 버프 추가됨. ({i+1}/{len(buffs)})")
 
+    print(f"완료. 모든 버프를 성공적으로 추가했습니다.\n")
     conn.close()
+
 
 def db_option():
     conn = sqlite3.connect("db.sqlite3")
@@ -270,19 +275,55 @@ def db_option():
     options = data['option']
 
     for i in range(len(options)):
-        stat = options[i]
-        stat_id = stat['id']
-        print(stat)
+        option = options[i]
+        option_id = option['id']
 
-        insert_list = list(stat.values())
+        insert_list = list(option.values())
         for j in range(len(insert_list)):
             if insert_list[j] is not None:
                 insert_list[j] = str(insert_list[j])
         cur.execute("INSERT OR REPLACE INTO option(id, icon, name, description, aliases) VALUES (?,?,?,?,?)", (insert_list))
-        if "aliases" not in stat or stat['aliases'] is None:
-            cur.execute(f"UPDATE buff SET aliases=NULL WHERE id=?", (stat_id, ))
+        if "aliases" not in option or option['aliases'] is None:
+            cur.execute(f"UPDATE buff SET aliases=NULL WHERE id=?", (option_id, ))
         conn.commit()
+        print(f"[{option['icon']} {option['name']}] 속성 추가됨. ({i+1}/{len(options)})")
 
+    print(f"완료. 모든 속성을 성공적으로 추가했습니다.\n")
+    conn.close()
+
+
+def db_step():
+    conn = sqlite3.connect("db.sqlite3")
+    cur = conn.cursor()
+    conn.execute("""CREATE TABLE IF NOT EXISTS step(
+        id TEXT PRIMARY KEY,
+        icon TEXT,
+        name TEXT,
+        description TEXT,
+        aliases TEXT
+        )""")
+    conn.commit()
+
+    with open("getdata.json", "rt", encoding="UTF-8") as file:
+        data = json.load(file)
+
+    steps = data['step']
+
+    for i in range(len(steps)):
+        step = steps[i]
+        step_id = step['id']
+
+        insert_list = list(step.values())
+        for j in range(len(insert_list)):
+            if insert_list[j] is not None:
+                insert_list[j] = str(insert_list[j])
+        cur.execute("INSERT OR REPLACE INTO step(id, icon, name, description, aliases) VALUES (?,?,?,?,?)", (insert_list))
+        if "aliases" not in step or step['aliases'] is None:
+            cur.execute(f"UPDATE buff SET aliases=NULL WHERE id=?", (step_id, ))
+        conn.commit()
+        print(f"[{step['icon']} {step['name']}] 제작 과정 추가됨. ({i+1}/{len(steps)})")
+
+    print(f"완료. 모든 제작 과정을 성공적으로 추가했습니다.\n")
     conn.close()
 
 
@@ -292,3 +333,4 @@ db_crop()
 db_facility()
 db_buff()
 db_option()
+db_step()
