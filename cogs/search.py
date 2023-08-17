@@ -334,7 +334,7 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
 
 
     def search_embed_step() -> discord.Embed:
-        embed=discord.Embed(title=f"{result['icon']} {result['name']}", description=f"{result['description']}", color=discord.Color(0xe67e22))
+        embed=discord.Embed(title=f"{result['icon']} {result['name']}", description=f"{result['description']}", color=discord.Color.yellow())
         items = fetch_item_all()
         field_value = ""
         for item in items:
@@ -367,11 +367,29 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
         return search_embed_option()
     elif result['type'] == "step":
         return search_embed_step()
+    
+
+
+def embed_suggest(keyword: str, db_list: list) -> discord.Embed:
+    description = ""
+    suggest_count = 0
+    for i in range(20):
+        if db_list[i]['ratio'] <= 0.05 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.5: # ratio가 5% 이하거나 가장 높은 ratio에 비해 50% 이상 낮은 경우 멈춤
+            break
+        description += f"{db_list[i]['icon']} **{db_list[i]['name']}**\n"
+        suggest_count += 1
+
+    if suggest_count != 0:
+        embed=discord.Embed(title="이것을 찾으셨나요?", description=description, color=discord.Color.light_grey())
+        return embed
+    else:
+        embed=discord.Embed(title="검색 결과 없음", description=f"`{keyword}`에 해당하는 적절한 아이템/작물/시설물/버프/능력치/제작 과정을 찾을 수 없습니다.", color=discord.Color.dark_grey())
+        return embed
 
 
 
 class SearchButton(Button):
-    def __init__(self, best:dict, guild_id:int, author_id:int):
+    def __init__(self, best: dict, guild_id: int, author_id: int):
         if best['id'] == "gem" and best['type'] == "item":
             button_style = discord.ButtonStyle.blurple
         elif best['id'] == "strawberry" and best['type'] == "item":
@@ -392,7 +410,7 @@ class SearchButton(Button):
         self.best      = best
         self.guild_id  = guild_id
         self.author_id = author_id
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: Interaction):
         embed = search_embed(self.best, self.guild_id, interaction.user.id)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -400,7 +418,7 @@ class SearchButton(Button):
 
 class SearchView(View):
     children: SearchButton
-    def __init__(self, result_count:int, result_list:list, guild_id:int, author_id:int):
+    def __init__(self, result_count: int, result_list: list, guild_id: int, author_id: int):
         super().__init__()
         if result_count >= 2:
             for i in range(result_count):
@@ -414,19 +432,18 @@ class Search(commands.Cog):
 
     @commands.hybrid_command(name="검색",
                              aliases=['search', '검', 'ㄱㅅ', 'ㄳ', 'ㄱ', 'rjator', 'rja', 'rt', 'r', 'item', '템', 'ㅇㅇㅌ', 'ㅌ', 'dkdlxpa', 'xpa', 'x'],
-                             description="아이템, 작물, 시설물, 버프를 검색하여 관련 정보를 확인합니다.",
+                             description="아이템, 작물, 시설물, 버프, 능력치, 제작 과정을 검색하여 관련 정보를 확인합니다.",
                              usage="[검색어]")
-    @app_commands.describe(keyword="검색할 항목 (아이템/작물/시설물/버프/능력치 이름)")
+    @app_commands.describe(keyword="검색할 항목 (아이템/작물/시설물/버프/능력치/제작 과정 이름)")
     async def search(self, ctx: commands.Context, *, keyword: str):
-        """아이템, 작물, 시설물, 버프, 능력치를 검색하여 관련 정보를 확인하는 명령어입니다. `[검색어]`는 검색할 아이템, 작물, 시설물, 버프, 능력치의 이름이여야 하며 필수로 입력해야 합니다.
+        """아이템, 작물, 시설물, 버프, 능력치, 제작 과정를 검색하여 관련 정보를 확인하는 명령어입니다. `[검색어]`는 검색할 아이템, 작물, 시설물, 버프, 능력치, 제작 과정의 이름이여야 하며 필수로 입력해야 합니다.
         검색어와 가장 유사한 파머모에 존재하는 항목을 나타내며 검색 결과에 따라 하나의 결과가 나올 수도, 여러 개의 결과가 나올 수도, 아니면 검색 결과가 나타나는 대신 추천 검색어가 나타날 수도 있습니다. 검색은 아이템의 한국어 이름, 영어 이름, 또는 아이템 ID로 검색할 수 있으며, 한국어 이름의 경우 초성으로도 검색이 가능합니다.
         __아이템__의 경우 어두운 회색(제작 방법이 없는 경우) 또는 코발트 블루색(제작 방법이 있는 경우)으로 나타나며, 명령어를 사용한 여행자의 아이템 보유 개수, 개당 무게, 아이템 제작 방법 등의 정보가 나타납니다.
         __작물__의 경우 춘록색으로 나타나며, 작물을 심는 데 필요한 딸기, 성장 속도, 필요 수분/비옥도 등의 정보가 나타납니다.
         __시설물__의 경우 갈색으로 나타나며, 시설물의 착수 비용과 기능 등의 정보가 나타납니다.
-        __버프__의 경우 하늘색으로 나타나며, 먹었을 때 발동하는 음식 목록과, 음식별 버프 지속시간이 나타납니다.
+        __버프__의 경우 하늘색으로 나타나며, 먹거나 사용했을 때 해당 버프가 발동하는 아이템 목록과, 아이템별 버프 지속시간이 나타납니다.
         __능력치__의 경우 주황색으로 나타나며, 해당 능력치를 변동시키는 아이템 목록과, 아이템별 능력치 변동 수치가 나타납니다.
-        *(버프와 능력치는 조만간 별도의 명령어로 분리시킬 예정이니 참고해 주세요.)*
-        *(`item`, `템`, `ㅇㅇㅌ`, `ㅌ`, `dkdlxpa`, `xpa`, `x` 동어의가 조만간 비활성화될 예정이니 참고해 주세요.)*
+        __제작 과정__의 경우 노란색으로 나타나며, 아이템을 만드는 데 해당 제작 과정이 들어가 있는 아이템 목록이 나타납니다.
         """
         
         db_list = search_db(keyword)
@@ -441,48 +458,27 @@ class Search(commands.Cog):
                 break
 
         if result_count == 0: # embeds가 없을 때
-            if db_list[0]['ratio'] >= 0.5 or (db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15): # ratio가 50% 이상이거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
+            if (db_list[0]['ratio'] >= 0.5 and db_list[0]['ratio'] > db_list[1]['ratio']*1.02) or (db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[1]['ratio']*1.15): # ratio가 50% 이상이고 다음 ratio에 비해 2% 이상 높거나 / 25% 이상이고 다음 ratio에 비해 15% 이상 높은 경우
                 if db_list[0]['name'] == db_list[1]['name'] or (db_list[0]['aliases'] == db_list[1]['aliases'] and db_list[0]['aliases'] is not None): # 같은 이름의 아이템 + 작물
-                    if db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[2]['ratio']*1.15:
+                    if db_list[0]['ratio'] >= 0.25 and db_list[0]['ratio'] >= db_list[2]['ratio']*1.15: # 다중 결과
                         if isinstance(ctx.channel, discord.channel.DMChannel):
                             embeds = [search_embed(db_list[0], 0, 0), search_embed(db_list[1], 0, 0)]
                         else:
                             embeds = [search_embed(db_list[0], ctx.guild.id, ctx.author.id), search_embed(db_list[1], ctx.guild.id, ctx.author.id)]
                         await ctx.reply(embeds=embeds)
-                    else:
-                        description = ""
-                        suggest_count = 0
-                        for i in range(15):
-                            if (db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.25) and i >= 5: # ratio가 20% 이하거나 가장 높은 ratio에 비해 25% 이상 낮은 경우 멈춤
-                                break
-                            description += f"{db_list[i]['icon']} **{db_list[i]['name']}**\n"
-                            suggest_count += 1
-
-                        if suggest_count != 0:
-                            embed=discord.Embed(title="이것을 찾으셨나요?", description=description, color=discord.Color.random())
-                            await ctx.reply(content="", embed=embed)
-                else:
+                    else: # 검색 제안
+                        embed = embed_suggest(keyword, db_list)
+                        await ctx.reply(embed=embed)
+                else: # 단일 결과
                     if isinstance(ctx.channel, discord.channel.DMChannel):
                         embed = search_embed(db_list[0], 0, 0)
                     else:
                         embed = search_embed(db_list[0], ctx.guild.id, ctx.author.id)
                     await ctx.reply(embed=embed)
 
-            else:
-                description = ""
-                suggest_count = 0
-                for i in range(15):
-                    if (db_list[i]['ratio'] <= 0.2 or db_list[0]['ratio'] >= db_list[i]['ratio']*1.25) and i >= 5: # ratio가 20% 이하거나 가장 높은 ratio에 비해 25% 이상 낮은 경우 멈춤
-                        break
-                    description += f"{db_list[i]['icon']} **{db_list[i]['name']}**\n"
-                    suggest_count += 1
-
-                if suggest_count != 0:
-                    embed=discord.Embed(title="이것을 찾으셨나요?", description=description, color=discord.Color.random())
-                    await ctx.reply(content="", embed=embed)
-
-                else:
-                    await ctx.reply(f"`{keyword}`에 해당하는 적절한 아이템/작물/시설물/버프/능력치를 찾을 수 없습니다.")
+            else: # 검색 제안
+                embed = embed_suggest(keyword, db_list)
+                await ctx.reply(embed=embed)
 
         elif result_count == 1:
             if isinstance(ctx.channel, discord.channel.DMChannel):

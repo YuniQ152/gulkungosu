@@ -61,7 +61,8 @@ def db_item() -> None:
         craftables TEXT,
         ingredients TEXT,
         steps TEXT,
-        aliases TEXT
+        aliases TEXT,
+        comments TEXT
         )""")
     conn.commit()
 
@@ -130,7 +131,8 @@ def db_crop() -> None:
         water TEXT,
         soil TEXT,
         health TEXT,
-        aliases TEXT
+        aliases TEXT,
+        comments TEXT
         )""")
     conn.commit()
     
@@ -192,7 +194,8 @@ def db_facility():
         rotatable INTEGER,
         build_costs TEXT,
         options TEXT,
-        aliases TEXT
+        aliases TEXT,
+        comments TEXT
         )""")
     conn.commit()
     
@@ -230,7 +233,8 @@ def db_buff():
         name TEXT,
         description TEXT,
         options TEXT,
-        aliases TEXT
+        aliases TEXT,
+        comments TEXT
         )""")
     conn.commit()
 
@@ -265,7 +269,8 @@ def db_option():
         icon TEXT,
         name TEXT,
         description TEXT,
-        aliases TEXT
+        aliases TEXT,
+        comments TEXT
         )""")
     conn.commit()
 
@@ -300,7 +305,8 @@ def db_step():
         icon TEXT,
         name TEXT,
         description TEXT,
-        aliases TEXT
+        aliases TEXT,
+        comments TEXT
         )""")
     conn.commit()
 
@@ -327,10 +333,33 @@ def db_step():
     conn.close()
 
 
+def db_comment():
+    conn = sqlite3.connect("db.sqlite3")
+    cur = conn.cursor()
+    conn.execute("""CREATE TABLE IF NOT EXISTS item_comment(
+        comment_id INTEGER PRIMARY KEY AUTOINCREMENT
+        user_id INTEGER NOT NULL,
+        item_id TEXT NOT NULL,
+        display_name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        upvote TEXT DEFAULT "[]",
+        downvote TEXT DEFAULT "[]",
+        created_at INTEGER,
+        is_edited INTEGER DEFAULT 0,
+        is_deleted INTEGER DEFAULT 0,
+        FOREIGN KEY (item_id) REFERENCES item(id)
+        )""")
+    conn.commit()
 
-db_item()
-db_crop()
-db_facility()
-db_buff()
-db_option()
-db_step()
+    print(f"완료. 코멘트 테이블을 추가했습니다.\n")
+    conn.close()
+
+
+
+# db_item()
+# db_crop()
+# db_facility()
+# db_buff()
+# db_option()
+# db_step()
+db_comment()

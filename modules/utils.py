@@ -239,7 +239,7 @@ def crop_text(crop: dict, topic: str = None):
 
 def step_text(steps: list, default_text: str = "*(별도의 제작 과정 없음)*"):
     if steps is None:
-        raise IndexError("NoneType은 인자가 될 수 없습니다.")
+        raise TypeError("NoneType은 인자가 될 수 없습니다.")
     elif steps == [None]:
         return default_text
     
@@ -275,11 +275,10 @@ def convert_seconds_to_time_text(in_seconds: int) -> str: # Credit: https://blog
 
 def arrow_number(num: int or float) -> str:
     """1이면 🔺1, -3이면 🔻3 이런식으로 바꿔주는 함수"""
-    text = ""
     if num > 0:
-        text += "🔺"
+        text = "🔺"
     elif num < 0:
-        text += "🔻"
+        text = "🔻"
     text += str(abs(num))
     return text
 
