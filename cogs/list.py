@@ -2,13 +2,11 @@ import discord
 from discord import Interaction, SelectOption
 from discord.ext import commands, tasks
 from discord.ui import View, Select, Button
-from discord.app_commands import Choice
-from typing import Optional, Literal, Union, List
+from typing import List
 from collections import deque
 from modules.database import *
 from modules.get import *
 from modules.utils import *
-from modules.paginator import PageButtonView
 
 
 
@@ -46,12 +44,10 @@ def item_embeds(category_filter: str = "all") -> List[discord.Embed]:
     return embeds
 
 
-
 class FilterView(View):
     def __init__(self, embeds: List[discord.Embed]) -> None:
         super().__init__(timeout=None)
         self.category_filter = "all"
-        self.stat_filter = ['health', 'rainResistance', 'maxHealth', 'pf', 'mf', 'pr', 'mr']
         self._embeds = embeds
         self._queue = deque(embeds)
         self._initial = embeds[0]

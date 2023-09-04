@@ -33,7 +33,7 @@ class Bot(commands.Bot):
             if filename.endswith(".py") and filename != "__init__.py":
                 await self.load_extension(f"cogs.{filename[:-3]}")
         await self.tree.sync()
-        check.start()
+        # check.start()
 
     async def on_ready(self):
         print(f"logged in as {bot.user} (ID: {bot.user.id})")
