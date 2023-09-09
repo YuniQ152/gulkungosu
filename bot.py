@@ -24,7 +24,7 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "아이템 제작 과정을 검색하는 기능 개발하기"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨ 신규 명령어: /목록"),
             intents = intents
         )
 

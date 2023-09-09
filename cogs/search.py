@@ -431,7 +431,7 @@ class Search(commands.Cog):
         self.bot = bot
 
     @commands.hybrid_command(name="검색",
-                             aliases=['search', '검', 'ㄱㅅ', 'ㄳ', 'ㄱ', 'rjator', 'rja', 'rt', 'r', 'item', '템', 'ㅇㅇㅌ', 'ㅌ', 'dkdlxpa', 'xpa', 'x'],
+                             aliases=['search', '검', 'ㄱㅅ', 'ㄳ', 'ㄱ', 'rjator', 'rja', 'rt', 'r'],
                              description="아이템, 작물, 시설물, 버프, 능력치, 제작 과정을 검색하여 관련 정보를 확인합니다.",
                              usage="[검색어]")
     @app_commands.describe(keyword="검색할 항목 (아이템/작물/시설물/버프/능력치/제작 과정 이름)")
