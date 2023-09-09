@@ -415,9 +415,88 @@
         {
             "id": "expiredAt",
             "icon": "⌛",
-            "name": "기간제",
+            "name": "기간제 아이템",
             "description": "정해진 날이 되면 사라지는 아이템입니다.",
             "aliases": ["만료일"]
+        }
+    ],
+    "step":[
+        {
+            "id": "bake",
+            "icon": "🔥",
+            "name": "굽기",
+            "description": "제한 시간 안에 양면이 모두 눈금에 맞도록 `입김 불기` 버튼으로 화력을 조절하고, `뒤집기` 버튼으로 뒤집으세요.",
+            "aliases": null
+        },
+        {
+            "id": "boil",
+            "icon": "♨",
+            "name": "끓이기",
+            "description": "제한 시간 안에 열기가 눈금에 __정확히__ 맞도록 화력을 조절하세요. 화력이 너무 강하면 내용물이 넘쳐흐르니 조심하세요.",
+            "aliases": null
+        },
+        {
+            "id": "cut",
+            "icon": "✂",
+            "name": "자르기",
+            "description": "주어진 시간동안 `자르기` 버튼을 커서가 눈금에 정확히 맞을 때마다 클릭하세요.",
+            "aliases": null
+        },
+        {
+            "id": "dry",
+            "icon": "🔆",
+            "name": "말리기",
+            "description": "제한 시간 안에 __수분이 0이 되도록__ 천막을 올려 햇볕을 쪼여요. 비가 올 때에는 천막을 내려야 해요.",
+            "aliases": null
+        },
+        {
+            "id": "filter",
+            "icon": "🥅",
+            "name": "거르기",
+            "description": "주어진 시간동안 제시된 __주제와 맞는__ 아이콘만을 선택하세요. 맞는 __아이콘이 없을 때에만__ `새로 고침` 버튼을 누르세요.",
+            "aliases": null
+        },
+        {
+            "id": "fry",
+            "icon": "🍤",
+            "name": "튀기기",
+            "description": "주어진 시간동안 기름의 온도가 최대한 __정해진 값을 유지하도록__ 화력을 조절하세요. 중간중간 튀어나오는 🔱 찌꺼기는 재빠르게 클릭해서 없애세요.",
+            "aliases": null
+        },
+        {
+            "id": "pour",
+            "icon": "🫖",
+            "name": "붓기",
+            "description": "제한 시간 안에 액체가 눈금에 __정확히__ 맞도록 붓는 빠르기를 적절히 제어하세요.",
+            "aliases": null
+        },
+        {
+            "id": "press",
+            "icon": "🗜",
+            "name": "누르기",
+            "description": "주어진 시간동안 `누르기` 버튼을 최대한 __일정한 간격으로__ 클릭하세요.",
+            "aliases": null
+        },
+        {
+            "id": "sculpt",
+            "icon": "🦯",
+            "name": "조각하기",
+            "description": "제한 시간 안에 [노노그램](https://ko.wikipedia.org/wiki/%EB%85%B8%EB%85%B8%EA%B7%B8%EB%9E%A8)을 완성하세요.",
+            "aliases": null
+        },
+        {
+            "id": "stir",
+            "icon": "💫",
+            "name": "휘젓기",
+            "description": "제한 시간 안에 제시된 화살표에 해당하는 버튼을 누르세요.",
+            "aliases": null
+        },
+        {
+            "id": "wait",
+            "icon": "🤔",
+            "name": "기다리기",
+            "description": "주어진 시간동안 시간을 때워요. 가끔씩 🪰 파리가 출몰하면 재빠르게 클릭해서 쫓아내세요. __파리만 클릭__해야 해요!",
+            "aliases": null
         }
     ]
 }

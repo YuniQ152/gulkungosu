@@ -9,6 +9,7 @@ from modules.utils import *
 
 def agora_embed(member: discord.Member, inv_list: list) -> discord.Embed:
     ticket_list = []
+    ticket_count = 0
 
     for item in inv_list:
         if item['staticId'] == "ticket-agora":
@@ -26,10 +27,11 @@ def agora_embed(member: discord.Member, inv_list: list) -> discord.Embed:
             text += f"<t:{ticket['expiredAt']}:f> (<t:{ticket['expiredAt']}:R>) × {ticket['quantity']}개\n"
         else:
             text += f"무기한 × {ticket['quantity']}개"
+        ticket_count += ticket['quantity']
 
     embed=discord.Embed(
         title=f"{member.display_name}님의 광장 입장권",
-        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {len(ticket_list)}",
+        description=f"> 🔗 사용하기: </agora:910495388300091392>\n> 🎟️ 입장권 개수: {ticket_count}",
         color=discord.Color(0xbe1931)
     )
     embed.add_field(name="만료일", value=text)

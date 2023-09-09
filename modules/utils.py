@@ -36,7 +36,11 @@ def search_db(keyword: str, whitelist: list = None) -> list:
         for i in range(len(options)):
             options[i]['type'] = 'option'
 
-        db_list = [*items, *crops, *facilities, *buffs, *options]
+        steps = fetch_step_all()
+        for i in range(len(steps)):
+            steps[i]['type'] = 'step'
+
+        db_list = [*items, *crops, *facilities, *buffs, *options, *steps]
     else:
         db_list = whitelist
 
@@ -185,7 +189,7 @@ def convert_datetime(unixtime):
     return datetime_obj
 
 
-def generate_crop_text(crop: dict, topic: str = None):
+def crop_text(crop: dict, topic: str = None):
     crop_id      = crop['staticCropId'] # 작물ID
     status       = crop['status']       # 상태: 0 정상 | 1 다갈증 | 2 나쁜 곰팡이 | 3 지렁이
     health       = crop['health']       # 체력
@@ -233,6 +237,21 @@ def generate_crop_text(crop: dict, topic: str = None):
     return crop_text
 
 
+def step_text(steps: list, default_text: str = "*(별도의 제작 과정 없음)*"):
+    if steps is None:
+        raise TypeError("NoneType은 인자가 될 수 없습니다.")
+    elif steps == [None]:
+        return default_text
+    
+    step_text = ""
+    for step in steps:
+        step = fetch_step_one(step)
+        step_text += f"[{step['icon']} {step['name']}] → "
+
+    step_text = step_text[:-3]
+    return step_text
+
+
 def convert_seconds_to_time_text(in_seconds: int) -> str: # Credit: https://blog.naver.com/wideeyed/221522740612
     t1   = datetime.timedelta(seconds=in_seconds)
     days = t1.days
@@ -254,13 +273,12 @@ def convert_seconds_to_time_text(in_seconds: int) -> str: # Credit: https://blog
     result = ' '.join(result)
     return result
 
-def arrow_number(num: int) -> str:
+def arrow_number(num: int or float) -> str:
     """1이면 🔺1, -3이면 🔻3 이런식으로 바꿔주는 함수"""
-    text = ""
     if num > 0:
-        text += "🔺"
+        text = "🔺"
     elif num < 0:
-        text += "🔻"
+        text = "🔻"
     text += str(abs(num))
     return text
 

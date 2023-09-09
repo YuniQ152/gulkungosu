@@ -14,8 +14,21 @@ def health_embed(member, user_info, facilities, equipments):
     heal_acceleration = user_info['healAcceleration'] # 10분당 회복하는 활동력
 
     embed=discord.Embed(title=f"💙 {member.display_name}님의 활동력",
-                        description=f"**{health:.2f}** / **{max_health:.2f}** (10분당 +{heal_acceleration:.2f})",
+                        description=f"**{health:.2f}** / **{max_health}** (10분당 +{heal_acceleration:.2f})",
                         color=discord.Color(0x5dadec))
+
+    if max_health != 100:
+        max_health_text = "> <:blank:908031851732533318> **기본** | `🔺100`\n"
+        for equipment in equipments:
+            if "maxHealth" in equipment['options']:
+                item_info = fetch_item_one(equipment['staticId'])
+                max_health_text += f"> {item_info['icon']} **{item_info['name']}** | `{arrow_number(equipment['options']['maxHealth'])}`\n"
+        for buff in user_info['buffs']:
+            buff_info = fetch_buff_one(buff)
+            if "maxHealth" in buff_info['options']:
+                max_health_text += f"> {buff_info['icon']} **{buff_info['name']}** | `{arrow_number(buff_info['options']['maxHealth'])}` | <t:{int(user_info['buffs'][buff]/1000)}:R>\n"
+        embed.add_field(name=f"최대 활동력: {max_health}", value=max_health_text)
+
 
     if heal_acceleration != 1:
         health_accel_text = "> <:blank:908031851732533318> **기본** | `🔺1`\n"
@@ -33,25 +46,13 @@ def health_embed(member, user_info, facilities, equipments):
         for equipment in equipments:
             if "healAcceleration" in equipment['options']:
                 item_info = fetch_item_one(equipment['staticId'])
-                health_accel_text += f"> {item_info['icon']} **{item_info['name']}** | `{arrow_number(equipment['options']['healAcceleration'])}`\n"
+                health_accel_text += f"> {item_info['icon']} **{item_info['name']}** | `{arrow_number(round(equipment['options']['healAcceleration'], 2))}`\n"
         for buff in user_info['buffs']:
             buff_info = fetch_buff_one(buff)
             if "healAcceleration" in buff_info['options']:
-                health_accel_text += f"> {buff_info['icon']} **{buff_info['name']}** | `{arrow_number(buff_info['options']['healAcceleration'])}` | <t:{int(user_info['buffs'][buff]/1000)}:R>\n"
-        embed.add_field(name="활동력 회복량 증가", value=health_accel_text)
+                health_accel_text += f"> {buff_info['icon']} **{buff_info['name']}** | `{arrow_number(round(buff_info['options']['healAcceleration'], 2))}` | <t:{int(user_info['buffs'][buff]/1000)}:R>\n"
+        embed.add_field(name=f"10분당 활동력 회복량: {heal_acceleration:.2f}", value=health_accel_text)
 
-    if max_health != 100:
-        max_health_text = "> <:blank:908031851732533318> **기본** | `🔺100`\n"
-        for equipment in equipments:
-            if "maxHealth" in equipment['options']:
-                item_info = fetch_item_one(equipment['staticId'])
-                max_health_text += f"> {item_info['icon']} **{item_info['name']}** | `{arrow_number(equipment['options']['maxHealth'])}`\n"
-        for buff in user_info['buffs']:
-            buff_info = fetch_buff_one(buff)
-            if "maxHealth" in buff_info['options']:
-                max_health_text += f"> {buff_info['icon']} **{buff_info['name']}** | `{arrow_number(buff_info['options']['maxHealth'])}` | <t:{int(user_info['buffs'][buff]/1000)}:R>\n"
-        embed.add_field(name="최대 활동력 증가", value=max_health_text)
-        
     return embed
 
 

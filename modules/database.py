@@ -74,6 +74,16 @@ def fetch_option_all() -> list[dict]:
     option_list = [dict(rows[i]) for i in range(len(rows))] # [{...}, {...}, {...}, ...]
     return option_list
 
+def fetch_step_one(step_id: str) -> dict:
+    cur.execute("SELECT * FROM step WHERE id = ?", (step_id, ))
+    row = dict(cur.fetchone())
+    return row
+def fetch_step_all() -> list[dict]:
+    cur.execute("SELECT * FROM step")
+    rows = cur.fetchall()
+    step_list = [dict(rows[i]) for i in range(len(rows))] # [{...}, {...}, {...}, ...]
+    return step_list
+
 # def fetch_name_only():
 #     rows = []
 #     tables = ['item', 'crop', 'facility', 'buff', 'option']

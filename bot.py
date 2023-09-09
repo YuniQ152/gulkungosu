@@ -24,30 +24,16 @@ class Bot(commands.Bot):
             case_insensitive = True,
             sync_command = True,
             owner_id = 776986070708518913,
-            activity = discord.Activity(type = discord.ActivityType.playing, name = "글쿤 고수 v2.0 개발 중"),
+            activity = discord.Activity(type = discord.ActivityType.playing, name = "✨ 신규 명령어: /목록"),
             intents = intents
         )
 
-        self.initial_extensions = ["cogs.help",
-                                   "cogs.cofarm",
-                                   "cogs.farm",
-                                   "cogs.health",
-                                   "cogs.inventory",
-                                   "cogs.stats",
-                                   "cogs.agora",
-                                   "cogs.land",
-                                   "cogs.search",
-                                   "cogs.graph",
-                                   "cogs.calculator",
-                                   "cogs.translator",
-                                   "cogs.log",
-                                   "cogs.error"]
-
     async def setup_hook(self):
-        for extension in self.initial_extensions:
-            await self.load_extension(extension)
+        for filename in os.listdir("./cogs"):
+            if filename.endswith(".py") and filename != "__init__.py":
+                await self.load_extension(f"cogs.{filename[:-3]}")
         await self.tree.sync()
-        check.start()
+        # check.start()
 
     async def on_ready(self):
         print(f"logged in as {bot.user} (ID: {bot.user.id})")
@@ -99,7 +85,7 @@ async def check():
 
                 if humidity <= 0.2 or fertility <= 0.3 or health <= 0.5:
                     severe_count += 1
-                    severe_text += generate_crop_text(crop)
+                    severe_text += crop_text(crop)
 
         crop_count = 0
         for crop in farms:
@@ -139,6 +125,28 @@ async def check():
         await message_channel.send(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 현재 활동력: 💙 {user_health}", embeds=embeds)
     else:
         await message_channel.send(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 현재 활동력: 💙 {user_health} <@776986070708518913>", embeds=embeds)
+
+
+
+@commands.command(name="reload", aliases=['ㄹㄹ', 'ff'], hidden=True)
+@commands.is_owner()
+async def reload(ctx: commands.Context):
+    try:
+        for filename in os.listdir("./cogs"):
+            if filename.endswith(".py") and filename != "__init__.py":
+                await bot.unload_extension(f"cogs.{filename[:-3]}")
+                await bot.load_extension(f"cogs.{filename[:-3]}")
+        await bot.tree.sync()
+        await ctx.reply("All cogs have been reloaded.")
+
+    except Exception as e:
+        await ctx.reply(f"An error occurred while reloading cogs: {e}")
+        return
+    
+@reload.error
+async def collection_power_error(ctx, error):
+    if isinstance(error, commands.NotOwner):
+        pass
 
 
 bot.run(TOKEN, reconnect=True)
