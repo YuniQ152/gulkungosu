@@ -356,10 +356,10 @@ def db_comment():
 
 
 
-# db_item()
-# db_crop()
-# db_facility()
-# db_buff()
-# db_option()
-# db_step()
-db_comment()
+db_item()
+db_crop()
+db_facility()
+db_buff()
+db_option()
+db_step()
+# db_comment()

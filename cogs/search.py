@@ -75,7 +75,9 @@ def search_embed(result: dict, guild_id: int = 0, user_id: int = 0) -> discord.E
                 value = result['options']['rainResistance']
                 embed.add_field(name="🌧️ 비 저항력", value=f"`{int(value*100)}%p`", inline=True)
                 
-            option_list = [['maxHealth', '최대 활동력'],
+            option_list = [
+                           ['maxWeight', '⏲️ 수용 가능 무게'],
+                           ['maxHealth', '최대 활동력'],
                            ['capacity', '⏲️ 광장 수용 가능 무게'],
                            ['pf', '물리 공격력'],
                            ['mf', '마법 공격력'],
