@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from discord.ui import View, Select, Button
 from typing import List
 from collections import deque
+from math import ceil
 from modules.database import *
 from modules.get import *
 from modules.utils import *
@@ -68,18 +69,25 @@ def list_embeds(subcommand: str("item" or "crop" or "facility" or "buff" or "opt
                                 color=discord.Color(0x57f288))]
         return embeds
 
-    # 25개 단위로 끊어서 embed 만들고 리스트에 추가
+    # 30개 단위로 끊어서 embed 만들고 리스트에 추가
+    ITEM_PER_PAGE = 30
     embeds = []
-    for i in range(0, len(items), 25):
-        description = ""
-        for j in range(0, min(len(items)-i, 25), 1):
-            description += f"{i+j+1}. {items[i+j]['icon']} **{items[i+j]['name']}**\n"
-        embed=discord.Embed(title="아이템 목록",
-                            description=description[:1999],
-                            color=discord.Color(0x57f288))
-        embed.set_footer(text=f"전체 {len(items)}개 중 {i+1}-{min(i+25, len(items))}개{' (필터링됨)' if filter != 'all' else ''}")
+    for i in range(ceil(len(items)/ITEM_PER_PAGE)):
+        subcommand_name = {"item":"아이템", "facility":"시설물", "buff":"버프", "option":"능력치", "step":"제작 과정"}
+        embed = discord.Embed(title=f"{subcommand_name[subcommand]} 목록", color=discord.Color(0x57f288))
+        for j in range(3):
+            field_value = ""
+            for k in range(10):
+                order = (i*30)+(j*10)+k
+                if order >= len(items):
+                    embed.add_field(name="\0", value=field_value)
+                    embed.set_footer(text=f"전체 {len(items)}개 중 {i*ITEM_PER_PAGE+1}-{min((i+1)*ITEM_PER_PAGE, len(items))}개{' (필터링됨)' if filter != 'all' else ''}")
+                    embeds.append(embed)
+                    return embeds
+                field_value += f"{order+1}. {items[order]['icon']} **{items[order]['name']}**\n"
+            embed.add_field(name="\0", value=field_value)
+        embed.set_footer(text=f"전체 {len(items)}개 중 {i*ITEM_PER_PAGE+1}-{min((i+1)*ITEM_PER_PAGE, len(items))}개{' (필터링됨)' if filter != 'all' else ''}")
         embeds.append(embed)
-    
     return embeds
 
 

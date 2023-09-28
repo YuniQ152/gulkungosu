@@ -5,6 +5,7 @@ from typing import Optional
 from modules.database import *
 from modules.get import *
 from modules.utils import *
+from math import floor
 
 
 
@@ -38,10 +39,10 @@ def land_embed(member: discord.Member, size: list, facilities: list) -> discord.
     
     for facility in facilities[:15]:
         facility_info = fetch_facility_one(facility['staticId'])
-        facilities_text += f"> **[{number_to_alphabet(facility['position'][0] + 1, True)}{facility['position'][1] + 1}]** {facility_info['icon']} **{facility_info['name']}** {'⭐' * facility['level']} | {facility['health']*100:.2f}% | {facility_status(facility['status'])}\n"
+        facilities_text += f"> **[{number_to_alphabet(facility['position'][0] + floor(facility_info['size'][0]/2) + 1)}{facility['position'][1] + floor(facility_info['size'][1]/2) + 1 }]** {facility_info['icon']} **{facility_info['name']}** {'⭐' * facility['level']} | {facility['health']*100:.2f}% | {facility_status(facility['status'])}\n"
 
     embed.add_field(name="시설물 목록 (최대 15개)", value=facilities_text, inline=False)
-    embed.set_footer(text="시설물 위치는 왼쪽 위 모서리를 기준으로 하기 때문에 파머모에서 나타나는 것과 다를 수 있습니다.")
+    embed.set_footer(text="참고: 시설물 위치가 더 이상 왼쪽 위 모서리를 기준으로 하지 않습니다.")
 
     return embed
 
@@ -86,4 +87,3 @@ class Land(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Land(bot))
-    
